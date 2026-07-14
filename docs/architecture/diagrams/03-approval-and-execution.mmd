@@ -1,0 +1,21 @@
+stateDiagram-v2
+    [*] --> Received: model emits tool call
+    Received --> Validated: parse schema + find runtime
+    Received --> Rejected: invalid or unavailable tool
+    Validated --> Forbidden: policy denies
+    Validated --> ApprovalPending: policy requires user decision
+    Validated --> Ready: policy allows
+    ApprovalPending --> Ready: user allows
+    ApprovalPending --> Denied: user denies
+    Ready --> Sandboxed: construct permission/sandbox policy
+    Sandboxed --> Running: start handler or process
+    Running --> Completed: typed result
+    Running --> Failed: execution error
+    Running --> Cancelled: turn cancellation
+    Rejected --> ModelOutput: structured tool error
+    Forbidden --> ModelOutput: structured denial
+    Denied --> ModelOutput: structured denial
+    Completed --> ModelOutput: call_id-correlated output
+    Failed --> ModelOutput: call_id-correlated error
+    Cancelled --> ModelOutput: interrupted output
+    ModelOutput --> [*]

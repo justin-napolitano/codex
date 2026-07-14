@@ -1,0 +1,45 @@
+flowchart TD
+    User[User]
+    subgraph Surfaces[Codex surfaces]
+        CLI[CLI / TUI]
+        IDE[IDE or desktop client]
+        MCPClient[MCP client]
+    end
+    AppServer[app-server\nJSON-RPC v2 adapter]
+    MCPServer[Codex MCP server\nexperimental adapter]
+    subgraph Core[codex-core: local agent runtime]
+        Session[Live session\nturn state, queues, cancellation]
+        Context[Context builder\ninstructions, history, tools]
+        Loop[Model and tool loop]
+        Policy[Policy and approval]
+        Registry[Tool registry]
+    end
+    Model[Remote model provider]
+    subgraph Durable[Durable local state]
+        Rollout[Rollout history]
+        Store[Thread store / projection]
+    end
+    subgraph Execution[Execution boundary]
+        Sandbox[OS sandbox / permission profile]
+        Local[Local files, processes, network]
+        Remote[Optional remote exec host]
+        External[MCP servers, apps, skills]
+    end
+
+    User --> CLI
+    User --> IDE
+    User --> MCPClient
+    IDE <--> AppServer
+    MCPClient <--> MCPServer
+    CLI <--> Session
+    AppServer <--> Session
+    MCPServer <--> Session
+    Session --> Context --> Loop
+    Loop <--> Model
+    Loop --> Policy --> Registry
+    Registry --> Sandbox --> Local
+    Registry <--> Remote
+    Registry <--> External
+    Session --> Rollout
+    Rollout -. materialize .-> Store
+    Store -. resume history .-> Session

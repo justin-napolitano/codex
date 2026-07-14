@@ -1,0 +1,4 @@
+interface:
+  display_name: "Run Research Pass"
+  short_description: "Audit claims against verified evidence"
+  default_prompt: "Use $run-research-pass to audit these claims and produce a reproducible evidence record."

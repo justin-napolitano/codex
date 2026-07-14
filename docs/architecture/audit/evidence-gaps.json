@@ -1,0 +1,31 @@
+{
+  "gaps": [
+    {
+      "gap_id": "GAP-001",
+      "question": "Should generic registry dispatch reject a model-originated call whose tool was registered but not advertised in that sampling request?",
+      "missing_evidence": "An explicit product/security contract for hidden registered tools plus an end-to-end adversarial test that submits such a call.",
+      "searches_performed": ["Inspected spec_plan model_visible_specs construction", "Inspected router and registry lookup/dispatch paths", "Searched router/spec-plan tests for hidden or hallucinated dispatch rejection"],
+      "impact": "The formal model cannot treat Exposed as an implementation enforcement guard. The guide now distinguishes advertisement from registration and dispatch.",
+      "next_action": "Have maintainers decide whether exposure is only provider guidance or an authorization invariant; if invariant, add a turn-scoped exposure check and regression test.",
+      "status": "open"
+    },
+    {
+      "gap_id": "GAP-002",
+      "question": "Can the operational model's safety and liveness properties be stated and checked as an actual formal specification?",
+      "missing_evidence": "A complete state-transition model, explicit environment/fairness assumptions, abstraction mapping to Rust state, and model-checker or proof results.",
+      "searches_performed": ["Inspected the architecture formal page", "Inspected core lifecycle/tool/persistence paths", "Checked linked primary TLA+ teaching resources"],
+      "impact": "The page must remain an engineering model; conditional liveness is labeled hypothesis-only and no formal-verification claim is made.",
+      "next_action": "Write a small TLA+ model for one thread, one approval-gated command, cancellation, and crash/recovery before attempting broader properties.",
+      "status": "open"
+    },
+    {
+      "gap_id": "GAP-003",
+      "question": "Which externally visible side effects are guaranteed to have a complete, durable, redaction-aware audit record across every tool family?",
+      "missing_evidence": "A product-wide persistence matrix covering local commands, patches, MCP, connectors/apps, search, remote execution, process/spawn, failure windows, retention, and redaction.",
+      "searches_performed": ["Inspected session event and rollout paths", "Inspected rollout recorder/repair/compaction", "Inspected local tool policy paths", "Reviewed app-server and MCP architectural contracts"],
+      "impact": "The guide says selected activity becomes reconstruction evidence and does not call rollout a complete immutable audit ledger.",
+      "next_action": "Build and test an effect-to-record matrix per handler, including crash points before and after external commit, then document retention/redaction guarantees separately.",
+      "status": "open"
+    }
+  ]
+}

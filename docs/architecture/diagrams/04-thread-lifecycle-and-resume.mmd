@@ -1,0 +1,18 @@
+flowchart TD
+    New[thread/start] --> Live[Live session\none active normal turn]
+    Live --> Turn[Turns contain durable items\nmessage, tool call, result]
+    Turn --> Rollout[Append-oriented rollout records]
+    Rollout -. project/index .-> Store[Thread store]
+    Live --> Interrupt[Interrupt or process stop]
+    Interrupt --> Rollout
+    Rollout --> Closed[Persisted / unloaded thread]
+    Store --> Closed
+    Closed --> Resume[thread/resume]
+    Resume --> Reconstruct[Read rollout/store\nnormalize + rebuild initial history]
+    Reconstruct --> NewLive[New live session]
+    NewLive --> Live
+    Live --> Flush[Flush recorded history]
+    Flush --> Fork[thread/fork snapshot]
+    Fork --> Child[New thread identity]
+    Child --> NewLive
+    Closed --> Archive[Archive or delete metadata]

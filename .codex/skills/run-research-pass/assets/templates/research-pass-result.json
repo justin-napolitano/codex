@@ -1,0 +1,27 @@
+{
+  "profile": "implementation-audit",
+  "status": "in_progress",
+  "target_claim_count": 0,
+  "inspected_source_count": 0,
+  "strength_counts": {
+    "established": 0,
+    "supported": 0,
+    "suggestive": 0,
+    "hypothesis_only": 0,
+    "local_observation_only": 0,
+    "unsupported": 0
+  },
+  "decision_counts": {
+    "accepted": 0,
+    "weakened": 0,
+    "moved_to_hypothesis": 0,
+    "moved_to_evidence_gap": 0,
+    "removed": 0
+  },
+  "open_evidence_gap_count": 0,
+  "changed_target_files": [],
+  "validation": {
+    "command": "python3 .codex/skills/run-research-pass/scripts/validate_research_pass.py AUDIT_DIR",
+    "result": "not_run"
+  }
+}

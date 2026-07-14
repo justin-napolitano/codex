@@ -1,0 +1,224 @@
+{
+  "sources": [
+    {
+      "source_id": "SRC-AGENTS",
+      "source_class": "maintainer_documentation",
+      "title": "Codex repository contributor instructions",
+      "locator": "AGENTS.md",
+      "version_or_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+      "inspected_locations": ["Repository overview", "Core principles", "Documentation"],
+      "supports": "Declared architectural ownership, bounded structured context as a contributor requirement, and documentation policy.",
+      "limitations": "States intended maintainer rules; it does not prove every runtime path enforces them.",
+      "accessed_at": "2026-07-14"
+    },
+    {
+      "source_id": "SRC-SESSION",
+      "source_class": "implementation",
+      "title": "Core session engine",
+      "locator": "codex-rs/core/src/session/mod.rs",
+      "version_or_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+      "inspected_locations": ["Session", "submit", "next_event", "request_command_approval", "request_patch_approval", "active task and cancellation state"],
+      "supports": "Live session ownership, operation/event flow, approval waiters, cancellation, and persistence integration.",
+      "limitations": "A large module; claims about an individual task or tool require its concrete implementation too.",
+      "accessed_at": "2026-07-14"
+    },
+    {
+      "source_id": "SRC-TURN",
+      "source_class": "implementation",
+      "title": "Turn sampling loop",
+      "locator": "codex-rs/core/src/session/turn.rs",
+      "version_or_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+      "inspected_locations": ["run_turn", "build_prompt", "built_tools", "run_sampling_request", "tool-call handling"],
+      "supports": "Per-turn settings/context construction, streaming model sampling, tool execution, and repeated sampling.",
+      "limitations": "Provider adapters and specialized tasks can add behavior outside this file.",
+      "accessed_at": "2026-07-14"
+    },
+    {
+      "source_id": "SRC-TOOLS",
+      "source_class": "implementation",
+      "title": "Tool router, registry, orchestrator, and specification plan",
+      "locator": "codex-rs/core/src/tools/{router.rs,registry.rs,orchestrator.rs,parallel.rs,spec_plan.rs}",
+      "version_or_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+      "inspected_locations": ["ToolRouter::build_tool_call", "dispatch_tool_call_with_terminal_outcome", "ToolRegistry", "ToolExecutor", "model_visible_specs", "parallel tool orchestration"],
+      "supports": "Call parsing, registry dispatch, hooks/lifecycle wrapping, result conversion, model-visible specification selection, and controlled parallel execution.",
+      "limitations": "Generic dispatch does not itself establish every handler's authorization boundary; registered and model-visible tools are distinct sets.",
+      "accessed_at": "2026-07-14"
+    },
+    {
+      "source_id": "SRC-TOOL-TESTS",
+      "source_class": "test",
+      "title": "Tool router and specification-plan tests",
+      "locator": "codex-rs/core/src/tools/{router_tests.rs,spec_plan_tests.rs}",
+      "version_or_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+      "inspected_locations": ["routing tests", "visible specification assertions", "feature/mode tool-selection cases"],
+      "supports": "Concrete examples of typed routing and conditional tool exposure at the pinned commit.",
+      "limitations": "Tests cover selected cases and are not a proof of universal behavior.",
+      "accessed_at": "2026-07-14"
+    },
+    {
+      "source_id": "SRC-POLICY",
+      "source_class": "implementation",
+      "title": "Execution approval policy and sandbox selection",
+      "locator": "codex-rs/core/src/{exec_policy.rs,tools/sandboxing.rs,tools/runtimes/shell.rs,tools/runtimes/apply_patch.rs}",
+      "version_or_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+      "inspected_locations": ["ExecApprovalRequirement", "Skip", "NeedsApproval", "Forbidden", "sandbox policy selection", "shell/patch approval calls"],
+      "supports": "Three-way execution decisions and separate local shell/patch sandbox construction.",
+      "limitations": "Does not govern every remote MCP, connector, search, or service-side authorization decision.",
+      "accessed_at": "2026-07-14"
+    },
+    {
+      "source_id": "SRC-CONTEXT",
+      "source_class": "implementation",
+      "title": "Context history, normalization, compaction, and truncation",
+      "locator": "codex-rs/core/src/{context_manager/history.rs,context_manager/normalize.rs,compact.rs,tasks/compact.rs,tools/mod.rs}; codex-rs/utils/output-truncation/src/lib.rs",
+      "version_or_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+      "inspected_locations": ["history projection", "orphan output removal", "missing output insertion", "compaction paths", "output truncation"],
+      "supports": "Model context is a derived projection; incomplete tool-call pairs are normalized; compaction/truncation handle context pressure.",
+      "limitations": "The normalizer establishes a usable pairing rule but does not by itself prove global uniqueness of outputs; limits can still produce visible failure.",
+      "accessed_at": "2026-07-14"
+    },
+    {
+      "source_id": "SRC-CONTEXT-TESTS",
+      "source_class": "test",
+      "title": "Context history and normalization tests",
+      "locator": "codex-rs/core/src/context_manager/history_tests.rs",
+      "version_or_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+      "inspected_locations": ["orphan output cases", "missing tool output cases", "history retention cases"],
+      "supports": "Observed normalization behavior for interrupted and malformed transcript shapes.",
+      "limitations": "Only the encoded cases are established.",
+      "accessed_at": "2026-07-14"
+    },
+    {
+      "source_id": "SRC-THREADS",
+      "source_class": "implementation",
+      "title": "Thread lifecycle, store, and rollout reconstruction",
+      "locator": "codex-rs/core/src/{thread_manager.rs,session/rollout_reconstruction.rs}; codex-rs/thread-store/src; codex-rs/rollout/src",
+      "version_or_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+      "inspected_locations": ["start", "resume", "fork", "rollout reconstruction", "thread listing/read paths"],
+      "supports": "Stable thread identity, recorded history, reconstruction into a new live session, and fork behavior.",
+      "limitations": "Persistence availability varies for ephemeral sessions and store configuration.",
+      "accessed_at": "2026-07-14"
+    },
+    {
+      "source_id": "SRC-ROLLOUT",
+      "source_class": "implementation",
+      "title": "Rollout recorder and compression",
+      "locator": "codex-rs/rollout/src/{recorder.rs,compression.rs,model_context.rs}",
+      "version_or_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+      "inspected_locations": ["JSONL append path", "tail repair/truncation", "flush", "compaction/materialized model context"],
+      "supports": "Append-oriented rollout recording, recovery from interrupted tails, flushing, and derived compacted records.",
+      "limitations": "The record is not literally immutable or necessarily a complete audit of every external side effect.",
+      "accessed_at": "2026-07-14"
+    },
+    {
+      "source_id": "SRC-ROLLOUT-TESTS",
+      "source_class": "test",
+      "title": "Rollout recorder tests",
+      "locator": "codex-rs/rollout/src/recorder_tests.rs",
+      "version_or_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+      "inspected_locations": ["append/flush cases", "corrupt or partial tail repair", "metadata and compaction cases"],
+      "supports": "Selected recorder recovery and persistence behavior at the pinned commit.",
+      "limitations": "Does not establish storage durability under every OS/filesystem failure mode.",
+      "accessed_at": "2026-07-14"
+    },
+    {
+      "source_id": "SRC-APP-DOC",
+      "source_class": "maintainer_documentation",
+      "title": "Codex app-server protocol guide",
+      "locator": "codex-rs/app-server/README.md",
+      "version_or_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+      "inspected_locations": ["Transports", "Queues and overload", "Lifecycle overview", "Initialization", "Threads", "Turns", "Approvals", "Experimental API opt-in", "Schema generation"],
+      "supports": "Declared JSON-RPC lifecycle, connection handshake, bounded queues, thread/turn/item APIs, bidirectional requests, experimental opt-in, and schema workflow.",
+      "limitations": "Large evolving reference; code and protocol types remain authoritative for exact field behavior.",
+      "accessed_at": "2026-07-14"
+    },
+    {
+      "source_id": "SRC-APP-IMPL",
+      "source_class": "implementation",
+      "title": "App-server connection and message processing",
+      "locator": "codex-rs/app-server/src/{lib.rs,message_processor.rs,request_processors/initialize_processor.rs,request_processors/thread_processor.rs,request_processors/turn_processor.rs}",
+      "version_or_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+      "inspected_locations": ["connection state", "initialize/initialized enforcement", "request routing", "thread start/resume/fork", "turn start/interrupt", "server requests"],
+      "supports": "Implementation backing for the app-server's high-level connection and lifecycle contracts.",
+      "limitations": "Does not by itself cover every processor named in the reference catalog.",
+      "accessed_at": "2026-07-14"
+    },
+    {
+      "source_id": "SRC-APP-TESTS",
+      "source_class": "test",
+      "title": "App-server connection and v2 integration tests",
+      "locator": "codex-rs/app-server/tests/suite/v2; codex-rs/app-server/tests/common",
+      "version_or_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+      "inspected_locations": ["initialize tests", "connection handling", "thread start/resume/fork", "turn lifecycle", "approval request/response", "overload/delay helpers"],
+      "supports": "End-to-end examples for major v2 lifecycle and connection contracts.",
+      "limitations": "Test coverage is broad but not exhaustive of the API catalog.",
+      "accessed_at": "2026-07-14"
+    },
+    {
+      "source_id": "SRC-APP-PROTOCOL",
+      "source_class": "generated_or_checked_in_protocol",
+      "title": "App-server protocol definitions",
+      "locator": "codex-rs/app-server-protocol/src/protocol/{common.rs,v1.rs,v2.rs}; codex-rs/app-server-protocol/schema",
+      "version_or_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+      "inspected_locations": ["ClientRequest", "ServerNotification", "ServerRequest", "thread/turn/item types", "experimental API metadata"],
+      "supports": "Authoritative checked-in method names, wire types, and versioned protocol structure at the pinned commit.",
+      "limitations": "Type declarations do not prove that every declared behavior succeeds at runtime.",
+      "accessed_at": "2026-07-14"
+    },
+    {
+      "source_id": "SRC-V1-DOC",
+      "source_class": "maintainer_documentation",
+      "title": "Core protocol v1 overview",
+      "locator": "codex-rs/docs/protocol_v1.md",
+      "version_or_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+      "inspected_locations": ["opening mismatch warning", "Entities", "Interface", "Transport", "compatibility note"],
+      "supports": "Historical terminology, SQ/EQ conceptual interface, compatibility serialization, and its own explicit warning that code may differ.",
+      "limitations": "Not a current authoritative specification; several lifecycle descriptions reflect older architecture.",
+      "accessed_at": "2026-07-14"
+    },
+    {
+      "source_id": "SRC-MCP-DOC",
+      "source_class": "maintainer_documentation",
+      "title": "Codex MCP server interface",
+      "locator": "codex-rs/docs/codex_mcp_interface.md",
+      "version_or_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+      "inspected_locations": ["status warning", "v2 methods", "notifications", "approvals", "collaboration modes", "authoritative schema note"],
+      "supports": "Declared experimental MCP control interface and its mapping to v2 app-server-style methods/events.",
+      "limitations": "Explicitly unstable and subordinate to protocol types plus server wiring.",
+      "accessed_at": "2026-07-14"
+    },
+    {
+      "source_id": "SRC-CORE-DOC",
+      "source_class": "maintainer_documentation",
+      "title": "codex-core runtime support matrix",
+      "locator": "codex-rs/core/README.md",
+      "version_or_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+      "inspected_locations": ["macOS", "Linux", "Windows", "All Platforms"],
+      "supports": "Declared platform-specific sandbox helpers, policy routing, compatibility, and fail-closed cases.",
+      "limitations": "A support contract, not a substitute for platform implementation and integration tests.",
+      "accessed_at": "2026-07-14"
+    },
+    {
+      "source_id": "SRC-BACKGROUND-LOGIC",
+      "source_class": "official_primary_background",
+      "title": "MIT OpenCourseWare Mathematics for Computer Science: predicates and sets",
+      "locator": "https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-fall-2005/resources/ln2/",
+      "version_or_commit": "accessed 2026-07-14",
+      "inspected_locations": ["lecture note landing page and predicates/sets description"],
+      "supports": "Optional background for the elementary set and predicate notation used by the formal page.",
+      "limitations": "Does not support any Codex implementation claim.",
+      "accessed_at": "2026-07-14"
+    },
+    {
+      "source_id": "SRC-BACKGROUND-TLA",
+      "source_class": "official_primary_background",
+      "title": "Leslie Lamport's State Machines in TLA+ and TLA+ video course",
+      "locator": "https://lamport.azurewebsites.net/video/smintla.html; https://lamport.azurewebsites.net/video/videos.html",
+      "version_or_commit": "accessed 2026-07-14",
+      "inspected_locations": ["state-machine lesson description", "video course index"],
+      "supports": "Optional primary-author background for state/transition and temporal-specification concepts.",
+      "limitations": "Does not make the guide a TLA+ specification or prove its properties.",
+      "accessed_at": "2026-07-14"
+    }
+  ]
+}

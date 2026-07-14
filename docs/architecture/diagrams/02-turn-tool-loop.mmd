@@ -1,0 +1,29 @@
+sequenceDiagram
+    participant Client as TUI / IDE client
+    participant Session as Live Session
+    participant Context as Context + tool builder
+    participant Model as Model provider
+    participant Router as Tool router / registry
+    participant Tool as Tool runtime
+    participant Store as Rollout / thread store
+
+    Client->>Session: Op::UserTurn
+    Session->>Context: resolve settings + build size-governed input
+    Context-->>Session: prompt + selected tool specifications
+    Session->>Model: streaming sampling request
+    Model-->>Client: assistant text/item deltas
+    Model-->>Session: ResponseItem::FunctionCall(call_id)
+    Session->>Router: build ToolCall + ToolInvocation
+    Router-->>Client: tool started event
+    Router->>Tool: execute(call_id, cancellation token)
+    Tool-->>Router: typed output or error
+    Router-->>Store: record selected call/result/lifecycle items
+    Router-->>Client: tool completed event
+    Router-->>Session: FunctionCallOutput(same call_id)
+    Session->>Model: next sampling request with tool output
+    alt more tool calls
+        Model-->>Session: another tool-call item
+    else final response
+        Model-->>Client: final assistant item + turn completed
+        Session-->>Store: persist terminal turn state
+    end

@@ -1,0 +1,13 @@
+flowchart LR
+    Durable[Recorded rollout items\nreconstruction-oriented history]
+    Normalize[Normalize history\npair calls and outputs\nrepair interrupted tails]
+    Retain[Retain relevant items\nand current world state]
+    Compact{Fits usable\ncontext window?}
+    Summary[Compaction summary\nnew context window]
+    Inject[Inject current facts\nAGENTS.md, config, environment, skills, tool specs]
+    Request[Model request constrained\nby context policy]
+    Durable --> Normalize --> Retain --> Compact
+    Compact -- yes --> Inject
+    Compact -- no --> Summary --> Inject
+    Inject --> Request
+    Summary -. durable compaction item .-> Durable

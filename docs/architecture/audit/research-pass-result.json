@@ -1,0 +1,40 @@
+{
+  "profile": "implementation-audit",
+  "status": "complete",
+  "target_claim_count": 42,
+  "inspected_source_count": 20,
+  "strength_counts": {
+    "established": 11,
+    "supported": 21,
+    "suggestive": 3,
+    "hypothesis_only": 1,
+    "local_observation_only": 6,
+    "unsupported": 0
+  },
+  "decision_counts": {
+    "accepted": 28,
+    "weakened": 12,
+    "moved_to_hypothesis": 1,
+    "moved_to_evidence_gap": 0,
+    "removed": 1
+  },
+  "open_evidence_gap_count": 3,
+  "changed_target_files": [
+    "docs/architecture/README.md",
+    "docs/architecture/01-system-overview.md",
+    "docs/architecture/02-agent-tool-loop.md",
+    "docs/architecture/03-threads-turns-persistence.md",
+    "docs/architecture/05-building-an-agent-runtime.md",
+    "docs/architecture/06-trace-a-turn.md",
+    "docs/architecture/07-formal-operational-model.md",
+    "docs/architecture/diagrams/02-turn-tool-loop.mmd",
+    "docs/architecture/diagrams/04-thread-lifecycle-and-resume.mmd",
+    "docs/architecture/diagrams/06-context-projection-and-compaction.mmd"
+  ],
+  "review_cutoff": "2026-07-14",
+  "repository_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+  "validation": {
+    "command": "python3 .codex/skills/run-research-pass/scripts/validate_research_pass.py docs/architecture/audit",
+    "result": "passed"
+  }
+}

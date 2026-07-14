@@ -1,0 +1,49 @@
+{
+  "protocol_id": "codex-architecture-implementation-audit-2026-07-14",
+  "profile": "implementation-audit",
+  "research_question": "At commit be0e0d791a1b735de307f013037b091d24f57484, which substantive architecture and tooling claims in docs/architecture and its linked Codex technical documents are directly established, locally observed, qualified, or unsupported by inspected implementation, tests, protocol types, and primary background sources?",
+  "targets": [
+    "docs/architecture/*.md",
+    "docs/architecture/diagrams/*.mmd",
+    "codex-rs/app-server/README.md (architectural and behavioral contracts)",
+    "codex-rs/core/README.md (runtime/platform contracts)",
+    "codex-rs/docs/protocol_v1.md (architectural and compatibility contracts)",
+    "codex-rs/docs/codex_mcp_interface.md (architectural and stability contracts)"
+  ],
+  "cutoff_date": "2026-07-14",
+  "search_venues": [
+    "pinned local git worktree",
+    "repository tests and generated/check-in protocol types",
+    "official primary background resources linked by the formal model"
+  ],
+  "search_terms": [
+    "tool registry dispatch model_visible_specs",
+    "approval exec policy sandbox",
+    "context normalize compact truncate",
+    "rollout recorder tail repair reconstruction",
+    "active task turn cancellation steering",
+    "app-server initialize bounded queue overload",
+    "thread start resume fork",
+    "MCP experimental protocol v2"
+  ],
+  "allowed_source_classes": [
+    "implementation",
+    "test",
+    "generated_or_checked_in_protocol",
+    "maintainer_documentation",
+    "official_primary_background"
+  ],
+  "inclusion_criteria": [
+    "Cross-cutting claims about component ownership, state, authority, execution, persistence, context, lifecycle, protocols, stability, or platform enforcement",
+    "Claims that a reader could reasonably treat as an implementation invariant or wire contract",
+    "Diagram labels that assert data flow, lifecycle, persistence, or an enforcement gate",
+    "High-level behavioral contracts stated by each linked technical document"
+  ],
+  "exclusion_criteria": [
+    "Pure navigation, prose transitions, definitions introduced only for the guide's own model, and illustrative pseudocode already labeled as design advice",
+    "Exhaustive field-by-field duplication of the 2,000-plus-line app-server API catalog; declarative field shapes are delegated to the checked-in protocol types and generated schemas",
+    "Example payload literals that merely instantiate a separately audited contract",
+    "Claims outside the named target files"
+  ],
+  "status": "complete"
+}

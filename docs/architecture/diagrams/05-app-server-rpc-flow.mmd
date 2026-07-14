@@ -1,0 +1,26 @@
+sequenceDiagram
+    participant Client as IDE / desktop client
+    participant Server as codex app-server
+    participant Threads as Thread processor
+    participant Core as codex-core session
+
+    Client->>Server: initialize(client metadata)
+    Server-->>Client: initialize result / notifications
+    Client->>Server: initialized notification
+    Client->>Server: thread/start or thread/resume
+    Server->>Threads: create or load thread
+    Threads->>Core: spawn or reconstruct session
+    Core-->>Server: thread events
+    Server-->>Client: thread/started
+    Client->>Server: turn/start(threadId, input, overrides)
+    Server->>Core: submit user turn
+    Core-->>Server: item and turn events
+    Server-->>Client: item/started, deltas, item/completed
+    opt operation needs permission
+        Core-->>Server: approval request
+        Server->>Client: JSON-RPC server request
+        Client-->>Server: allow or deny response
+        Server-->>Core: approval decision
+    end
+    Core-->>Server: turn/completed
+    Server-->>Client: turn/completed notification

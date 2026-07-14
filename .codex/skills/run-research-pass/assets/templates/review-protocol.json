@@ -1,0 +1,13 @@
+{
+  "protocol_id": "replace-me",
+  "profile": "implementation-audit",
+  "research_question": "replace-me",
+  "targets": [],
+  "cutoff_date": "YYYY-MM-DD",
+  "search_venues": [],
+  "search_terms": [],
+  "allowed_source_classes": [],
+  "inclusion_criteria": [],
+  "exclusion_criteria": [],
+  "status": "in_progress"
+}
