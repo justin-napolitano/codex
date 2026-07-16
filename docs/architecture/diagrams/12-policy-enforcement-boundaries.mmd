@@ -1,0 +1,34 @@
+flowchart LR
+    Model[Model reasoning]
+    Catalog[Host tool catalog]
+    Search[Deferred metadata search]
+    Router[ToolRouter / registry]
+    Rules[Execpolicy rules]
+    Mode[Approval mode]
+    Review[User or reviewer]
+    Profile[Permission profile]
+    Sandbox[OS or exec-server sandbox]
+    Network[Network policy/proxy]
+    Runtime[Tool runtime]
+
+    Catalog --> Model
+    Search --> Model
+    Model -->|structured proposal| Router
+    Router --> Rules
+    Rules --> Mode
+    Mode -->|prompt| Review
+    Review --> Profile
+    Mode -->|allow| Profile
+    Rules -->|forbidden| Runtime
+    Profile --> Sandbox
+    Profile --> Network
+    Sandbox --> Runtime
+    Network --> Runtime
+    Runtime -->|result/call_id| Model
+
+    classDef model fill:#d1e7dd,stroke:#0f5132,color:#000;
+    classDef host fill:#cfe2ff,stroke:#084298,color:#000;
+    classDef authority fill:#f8d7da,stroke:#842029,color:#000;
+    class Model model;
+    class Catalog,Search,Router host;
+    class Rules,Mode,Review,Profile,Sandbox,Network,Runtime authority;

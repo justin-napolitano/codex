@@ -39,3 +39,7 @@ The companion [tool-call and routing audit](tool-call-routing/README.md) uses
 the same implementation-audit contract for the runtime dispatch path. The
 [skill/CLI inventory audit](skill-call-inventory/README.md) applies it to skill
 discovery, resource reads, and script command boundaries.
+
+The [policy-layer audit](policy-layer/README.md) applies the same contract to
+model tool discovery, approval decisions, permission profiles, sandboxing, and
+network enforcement.

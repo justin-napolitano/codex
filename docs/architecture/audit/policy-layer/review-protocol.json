@@ -1,0 +1,13 @@
+{
+  "protocol_id":"codex-policy-layer-review-2026-07-16",
+  "profile":"implementation-audit",
+  "research_question":"How does Codex construct the model's tool choice set and transform a proposed tool call into an authorized, sandboxed execution?",
+  "targets":["docs/architecture/10-policy-layer.md","docs/architecture/diagrams/11-policy-decision-pipeline.mmd","docs/architecture/diagrams/12-policy-enforcement-boundaries.mmd"],
+  "cutoff_date":"2026-07-16",
+  "search_venues":["codex-rs/core/src/tools","codex-rs/core/src/session/turn.rs","codex-rs/core/src/exec_policy.rs","codex-rs/execpolicy","codex-rs/protocol","codex-rs/sandboxing","focused tests","docs/execpolicy.md"],
+  "search_terms":["model_visible_specs","tool_search","ToolExposure","prefix_rule","AskForApproval","ExecApprovalRequirement","SandboxPolicy","network approval","permission profile"],
+  "allowed_source_classes":["implementation","test","protocol","official documentation"],
+  "inclusion_criteria":["directly inspected source or focused test","pinned repository evidence","exact file/symbol or section anchor"],
+  "exclusion_criteria":["uninspected provider behavior","claims about model internals","platform generalizations without platform evidence"],
+  "status":"complete"
+}

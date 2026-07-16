@@ -67,6 +67,7 @@ def validate_clickable_inventory(
     inventory_files = (
         ("skill-call-inventory.json", "skill inventory"),
         ("tool-call-routing-inventory.json", "tool-routing inventory"),
+        ("policy-call-inventory.json", "policy inventory"),
     )
     existing = [(audit_dir / name, label) for name, label in inventory_files if (audit_dir / name).exists()]
     if not existing:

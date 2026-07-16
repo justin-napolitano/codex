@@ -1,0 +1,24 @@
+flowchart TD
+    A[Turn context, config, model capabilities] --> B[Build ToolRouter]
+    B --> C[Direct visible specs]
+    B --> D[Deferred searchable metadata]
+    C --> E[Model request]
+    D --> E
+    E --> F{Model response}
+    F -->|direct tool call| G[Parse ToolCall]
+    F -->|tool_search| H[Search metadata / activate matches]
+    H --> I[Next model request with discovered specs]
+    I --> F
+    G --> J[Registry and payload validation]
+    J --> K[Execpolicy evaluation]
+    K -->|forbidden| X[Rejected tool result]
+    K -->|prompt| L{Approval mode}
+    K -->|allow| M[Permission profile]
+    L -->|disallowed| X
+    L -->|pending| N[User/reviewer decision]
+    N -->|deny| X
+    N -->|approve| M
+    M --> O[Sandbox and network enforcement]
+    O --> P[Runtime execution]
+    P --> Q[Correlated result]
+    Q --> I

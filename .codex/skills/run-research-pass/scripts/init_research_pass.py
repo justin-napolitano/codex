@@ -20,6 +20,7 @@ TEMPLATES = (
 CALL_INVENTORY_TEMPLATES = {
     "skill": "skill-call-inventory.json",
     "tool-routing": "tool-call-routing-inventory.json",
+    "policy": "policy-call-inventory.json",
 }
 
 
@@ -37,6 +38,11 @@ def main() -> int:
         action="store_true",
         help="also create the clickable tool-call/routing inventory template",
     )
+    parser.add_argument(
+        "--with-policy-inventory",
+        action="store_true",
+        help="also create the clickable policy-layer inventory template",
+    )
     args = parser.parse_args()
 
     skill_root = Path(__file__).resolve().parent.parent
@@ -48,6 +54,8 @@ def main() -> int:
         template_names.append(CALL_INVENTORY_TEMPLATES["skill"])
     if args.with_tool_routing_inventory:
         template_names.append(CALL_INVENTORY_TEMPLATES["tool-routing"])
+    if args.with_policy_inventory:
+        template_names.append(CALL_INVENTORY_TEMPLATES["policy"])
 
     for name in template_names:
         destination = args.output / name

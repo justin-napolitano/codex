@@ -1,0 +1,6 @@
+{
+  "gaps":[
+    {"gap_id":"P-GAP-001","question":"How do all supported model providers implement tool selection and hidden reasoning?","missing_evidence":"Provider model internals are not in this repository.","searches_performed":"Inspected request construction, tool schemas, and response parsing.","impact":"Document describes host boundary, not model cognition or quality.","next_action":"Use provider-specific documentation or controlled traces if model behavior must be compared.","status":"open"},
+    {"gap_id":"P-GAP-002","question":"What exact resource enforcement guarantees hold on every supported OS and remote executor?","missing_evidence":"Platform sandbox backends and remote hosts were not exhaustively audited.","searches_performed":"Inspected core sandbox policy and denied-read guards.","impact":"Do not generalize one platform's enforcement to all hosts.","next_action":"Run platform-specific sandbox and exec-server audits.","status":"open"}
+  ]
+}

@@ -29,6 +29,8 @@ reaches a terminal state.
 9. [Tool-call and routing inventory](09-tool-call-and-routing-inventory.md) —
    evidence-linked parsing, dispatch, authorization, execution adapters, and
    result routing.
+10. [Policy layer](10-policy-layer.md) — how model proposals, host discovery,
+    approval policy, sandbox profiles, and enforcement compose.
 
 ## Diagrams
 
@@ -48,6 +50,8 @@ link to the relevant source beside the explanation.
 | [Skill script command boundaries](diagrams/08-skill-script-command-boundaries.mmd) | Why skill attribution is separate from shell execution, approval, and sandboxing. |
 | [Tool-call routing lifecycle](diagrams/09-tool-call-routing-lifecycle.mmd) | A response item through parsing, policy, execution, result conversion, and the next turn. |
 | [Tool authority boundaries](diagrams/10-tool-authority-boundaries.mmd) | Which layer owns planning, policy, sandboxing, effects, providers, and persistence. |
+| [Policy decision pipeline](diagrams/11-policy-decision-pipeline.mmd) | Model-visible tools, deferred search, policy decisions, approvals, and execution. |
+| [Policy enforcement boundaries](diagrams/12-policy-enforcement-boundaries.mmd) | The boundary between model reasoning, host heuristics, authorization, and resource enforcement. |
 
 ## Scope and terminology
 
@@ -95,6 +99,7 @@ The most useful terms are:
 | What is the formal logic behind the tooling loop? | `07-formal-operational-model.md` |
 | How do skills and skill scripts enter the loop? | `08-skill-and-cli-call-inventory.md` and `audit/skill-call-inventory/` |
 | How are tool calls parsed, routed, authorized, and executed? | `09-tool-call-and-routing-inventory.md` and `audit/tool-call-routing/` |
+| How does the model discover tools and how are requests authorized? | `10-policy-layer.md` and `audit/policy-layer/` |
 
 ## A useful mental model
 

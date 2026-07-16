@@ -49,14 +49,15 @@ python3 .codex/skills/run-research-pass/scripts/validate_research_pass.py path/t
 Use the templates under `assets/templates/` when automation is unavailable.
 
 For call/API inventories, add `skill-call-inventory.json` or
-`tool-call-routing-inventory.json` beside the six audit records. Each record
+`tool-call-routing-inventory.json`, or `policy-call-inventory.json` beside the six audit records. Each record
 should have a stable `call_id`, Markdown `anchor`, source and claim references,
 evidence IDs, and clickable `links`. Add
 `evidence_points` and `source_links` to `source-audit.json`, and use the
 human-readable Markdown companions when JSON fragments do not provide useful
-anchors. The validator automatically checks either optional extension when its
-inventory file is present. Use `--with-call-inventory` for skill inventories or
-`--with-tool-routing-inventory` for tool-call/routing inventories.
+anchors. The validator automatically checks each optional extension when its
+inventory file is present. Use `--with-call-inventory` for skill inventories,
+`--with-tool-routing-inventory` for tool-call/routing inventories, or
+`--with-policy-inventory` for policy-layer inventories.
 
 ## Evidence rules
 
