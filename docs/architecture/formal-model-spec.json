@@ -1,0 +1,42 @@
+{
+  "model": "codex-formal-operational-model",
+  "state": {
+    "name": "Σ",
+    "components": {
+      "T": "thread identities and metadata",
+      "A": "active live-session and turn state",
+      "H": "durable rollout/history projections",
+      "Q": "pending external-answer waiters",
+      "P": "effective permission and approval profile",
+      "K": "cancellation state",
+      "E": "live event envelopes and client stream"
+    }
+  },
+  "symbols": {
+    "Submission": {"kind": "sort"},
+    "Turn": {"kind": "sort"},
+    "ToolCall": {"kind": "sort"},
+    "Decision": {"kind": "set", "values": ["allow", "require_approval", "deny"]},
+    "AcceptableSubmit": {"kind": "predicate", "args": ["Σ", "Submission"]},
+    "NoActiveRegularTurn": {"kind": "predicate", "args": ["Σ", "Submission"]},
+    "ActiveRegularTurn": {"kind": "predicate", "args": ["Σ", "Turn"]},
+    "PolicyChoice": {"kind": "function", "args": ["Σ", "ToolCall"], "returns": "Decision"},
+    "ThreadExists": {"kind": "predicate", "args": ["Σ", "thread_id"]},
+    "PendingInput": {"kind": "function", "args": ["Turn", "Σ"], "returns": "input_items"},
+    "TurnId": {"kind": "function", "args": ["Turn"], "returns": "turn_id"},
+    "SubmissionId": {"kind": "function", "args": ["Submission"], "returns": "submission_id"}
+  },
+  "transitions": [
+    {"name": "Submit-new-turn", "action": "Submit", "preconditions": ["AcceptableSubmit", "NoActiveRegularTurn"], "writes": ["A", "P", "K", "H", "E"], "postconditions": ["TurnId=SubmissionId", "Status=in_progress"]},
+    {"name": "Submit-steering", "action": "Submit", "preconditions": ["AcceptableSubmit", "ActiveRegularTurn"], "writes": ["A", "E"], "postconditions": ["PendingInput_appends", "NoNewNormalTurnCreated"]},
+    {"name": "Submit-rejected", "action": "Submit", "preconditions": ["not AcceptableSubmit OR ActiveNonSteerableTurn"], "writes": ["E"], "postconditions": ["Error", "NoToolEffectStarted"]},
+    {"name": "Tool-allow", "action": "Dispatch", "preconditions": ["PolicyChoice=allow"], "writes": ["A", "H", "E"], "postconditions": ["ResultCorrelated"]},
+    {"name": "Tool-approval", "action": "RequestApproval", "preconditions": ["PolicyChoice=require_approval"], "writes": ["Q", "E"], "postconditions": ["PendingApproval", "not Running"]},
+    {"name": "Tool-deny", "action": "RejectToolCall", "preconditions": ["PolicyChoice=deny"], "writes": ["H", "E"], "postconditions": ["not StartLocalEffect"]}
+  ],
+  "invariants": [
+    {"name": "single-normal-turn", "scope": ["A"], "formula": "ActiveNormalTurns(s) <= 1"},
+    {"name": "approval-pauses-execution", "scope": ["Q", "A"], "formula": "PendingApproval(c) => not Running(c)"},
+    {"name": "call-result-correlation", "scope": ["H"], "formula": "NeedsOutput(c) => exists r: CallId(r)=CallId(c)"}
+  ]
+}

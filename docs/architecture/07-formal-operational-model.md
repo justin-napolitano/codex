@@ -33,7 +33,7 @@ shorthand; the page defines every symbol it uses.
 | `f(x)` | “function f applied to x” | `Context(H)` derives model context from history. |
 | `≤` | “is less than or equal to” | `n ≤ 1` means n is at most one. |
 | `Σ′` | “Sigma-prime” / “next state” | The system state after one transition from `Σ`. |
-| `Σ ──a──▶ Σ′` | “action a moves Σ to Σ′” | `Submit(u)` moves the runtime to a state with a new turn. |
+| `Σ ──a──▶ Σ′` | “action a moves Σ to Σ′” | `Enqueue(u)` or `Dispatch(c)` moves the runtime to a next state. |
 | `:` | “such that,” or separates a name from its definition | `∃t : Owner(t)=u` means “there is a t such that…”. |
 
 ### Four words that make the formulas readable
@@ -47,31 +47,70 @@ shorthand; the page defines every symbol it uses.
 - An **invariant** is a property intended to remain true in every reachable
   state, not merely at the start or finish.
 
+### How to judge consistency
+
+This page is consistent only when its symbols, state components, transitions,
+predicates, invariants, and implementation evidence agree. Use these tests:
+
+| Concept | Review question | Example here |
+| --- | --- | --- |
+| State | Is one snapshot complete and typed? | `Σ := ⟨T,A,H,Q,P,K,E⟩` declares the runtime components. |
+| Transition | Does every enabled action have a precondition, update, and postcondition? | `Submit(u)` has new-turn, steering, and rejection branches. |
+| Predicate | Is each true/false condition defined with stable arguments and scope? | `AcceptableSubmit(Σ,u)` gates submission handling. |
+| Invariant | Does the property hold across every reachable transition, not just one example? | `ActiveNormalTurns(s) ≤ 1` constrains ordinary model loops. |
+| Evidence | Does the implementation or test evidence support the claim at the stated strength? | Session handlers and protocol types support the submission mapping. |
+
+The full teaching primer is in the review skill’s
+[logic-and-consistency primer](../../.codex/skills/formal-model-consistency-review/references/logic-and-consistency-primer.md).
+The machine-checkable declaration for this page is
+[`formal-model-spec.json`](formal-model-spec.json); it validates names, state
+residency, transition contracts, and invariant scopes but does not constitute a
+formal proof.
+
+The old shorthand “every submission creates a turn” is too strong: a regular
+turn can accept additional input as steering. The precise formulas appear in
+the submission section below.
+
 For example, read this rule left to right:
 
 ```text
-Σ ──Submit(u)──▶ Σ′  ⇒  ∃t ∈ Turns(Σ′) : Owner(t) = u
+AcceptableSubmit(Σ,u) ∧ NoActiveRegularTurn(Σ,u)
+  ∧ Σ ──Submit(u)──▶ Σ′
+  ⇒ ∃t ∈ Turns(Σ′) : TurnId(t) = SubmissionId(u)
 ```
 
-It says: “after a user submission changes the system from `Σ` to `Σ′`, there
-exists a turn in the new state that owns that submission.” The colon means
-“such that.” This page uses this style to state behavior compactly, then
-translates it into English.
+It says: “if an acceptable submission arrives when no regular turn is active,
+the resulting state contains a turn whose ID is that submission’s ID.” A
+steering submission instead updates an existing turn’s pending-input queue.
+The colon means “such that.”
 
 ## The objects being modeled
 
-Let these be the sets of possible runtime objects:
+Let these be the abstract sets of runtime objects. Each row also names the
+concrete implementation projection; the abstract object is not necessarily one
+Rust struct.
 
 ```text
-Thread       = durable conversation identities
-Turn         = one user-initiated unit of work
-Item         = messages, tool calls, outputs, lifecycle records, and artifacts
-CallId       = identifiers correlating a tool call with its result
-Tool         = capability names known to a runtime
-Event        = user-visible progress, approval, error, and completion updates
-Profile      = effective permission/sandbox configurations
+Thread       = durable conversation identity and metadata
+Turn         = one model-loop unit of work owned by a thread/session
+Item         = a durable or live turn-associated record
+CallId       = correlation identity for one call and its result
+Tool         = named capability, schema, and runtime implementation
+Event        = live delivery envelope carrying an EventMsg
+Profile      = effective permission, sandbox, network, and approval settings
 Decision     = {allow, require_approval, deny}
 ```
+
+| Abstract object | Concrete implementation projection |
+| --- | --- |
+| `Thread` | `ThreadId`, thread-store metadata, rollout identity, and `CodexThread`/`ThreadManager` handles. |
+| `Turn` | `TurnContext`, `ActiveTurn`, `TurnState`, `sub_id`, task kind, input queue, and lifecycle status. |
+| `Item` | `ResponseItem`, `TurnItem`, `RolloutItem`, or a lifecycle item depending on the projection. |
+| `CallId` | String IDs on `ToolCall`, `ToolInvocation`, approval events, and tool outputs. |
+| `Tool` | `ToolName`, `ToolSpec`, `CoreToolRuntime`, and `ToolRegistry` entry. |
+| `Event` | `Event { id, msg: EventMsg }` delivered through the event channel. |
+| `Profile` | `PermissionProfile`, `ActivePermissionProfile`, sandbox policy, approval policy, and network settings. |
+| `Decision` | Execpolicy `Allow`, `Prompt`, or `Forbidden`, normalized here to `allow`, `require_approval`, or `deny`. |
 
 The runtime state is the tuple:
 
@@ -81,17 +120,31 @@ The runtime state is the tuple:
 
 | Component | Meaning in plain English |
 | --- | --- |
-| `T` | Known thread identities and their metadata. |
-| `A` | Active live-session state: the loaded thread, current turn, queues, and step state. |
-| `H` | Durable, ordered history/rollout items. This is the recovery record. |
-| `Q` | Pending external answers: approval requests and structured user-input requests. |
-| `P` | Effective permission profile and approval policy for the active turn. |
-| `K` | Cancellation state/tokens for active work. |
-| `E` | Events emitted to connected clients. This is the live progress stream. |
+| `T` | Thread manager/store identities and durable thread metadata. |
+| `A` | Live session state: active turn/task, `TurnContext`, queues, and step state. |
+| `H` | Durable rollout/history projections used for recovery and reconstruction. |
+| `Q` | Pending approval, user-input, and other external-answer waiters. Conceptually a special live subset of `A`. |
+| `P` | Effective turn profile: permission/sandbox, approval, network, and related policy state. |
+| `K` | Cancellation tokens and task/tool cancellation state. |
+| `E` | Live `Event` envelopes and client delivery stream. |
 
-The tuple deliberately separates `H` and `E`. Durable history answers “what
-happened?” Events answer “what should a currently connected UI render now?”
-They overlap, but are not interchangeable.
+The tuple separates ownership and purpose, not disjoint object sets. `H` is the
+durable rollout projection; `E` is live client delivery. Some events are
+persisted as `RolloutItem::EventMsg`, while history also contains response items
+that were never live events. `Q` is separated from `A` because pending external
+answers have special blocking and resume rules.
+
+The residency map is:
+
+```text
+ThreadManager / ThreadStore ───────► T: Thread identities and metadata
+Session.active_turn/state ─────────► A: TurnContext, ActiveTurn, TurnState
+SessionState.history / rollout ────► H: durable RolloutItem projections
+approval/input waiters/mailboxes ──► Q: pending external answers
+TurnContext/config/profile ────────► P: effective policy/profile
+task/tool CancellationToken ───────► K: cancellation state
+event channel / Event{id,msg} ─────► E: live client stream
+```
 
 ## Derived functions and predicates
 
@@ -112,6 +165,57 @@ ResultOf(c)              = output carrying the same CallId as c
 Completed(c)             = c has a terminal output, error, or cancellation record
 ```
 
+### Submission, routing, and policy functions
+
+The submission is a structured operation, not just a text string:
+
+```text
+Submission u :=
+  ⟨submission_id, thread_id, input_items, settings_overrides,
+   additional_context, output_schema, client_message_id, trace_context⟩
+```
+
+`SubmissionId(u)` identifies the queued operation. `TurnId(t)` identifies a
+turn; they often match for a newly created turn in this implementation, but
+they are conceptually different identifiers.
+
+```text
+AcceptableSubmit(Σ,u) :=
+  ThreadExists(Σ,u.thread_id)
+  ∧ DirectInputAllowed(Σ,u.thread_id)
+  ∧ InputWithinBoundary(u.input_items)
+  ∧ SettingsOverridesValid(u.settings_overrides)
+
+RouteInput(Σ,u) ∈ {CreateTurn, SteerExistingTurn, RejectSubmission}
+ExposeTools(Σ,t) = visible and searchable tool specifications for t
+RouteTool(Σ,t,c) ∈ {Dispatch(runtime), AwaitPolicy, RejectToolCall}
+```
+
+Normalize the implementation’s execpolicy vocabulary into this page’s
+decision vocabulary:
+
+```text
+NormalizeDecision(Allow)    = allow
+NormalizeDecision(Prompt)   = require_approval
+NormalizeDecision(Forbidden)= deny
+```
+
+Approval-mode filtering is a second policy step:
+
+```text
+PolicyChoice(Σ,c) =
+  deny               if ExecPolicy(c) = Forbidden
+  require_approval   if ExecPolicy(c) = Prompt
+                       ∧ ApprovalModeAllowsPrompt(P(Σ),c)
+  deny               if ExecPolicy(c) = Prompt
+                       ∧ ¬ApprovalModeAllowsPrompt(P(Σ),c)
+  allow              if ExecPolicy(c) = Allow
+```
+
+`Submit` establishes the turn’s effective profile; it does not authorize all
+future tool calls. A later model proposal is routed through
+`PolicyChoice(Σ,c)`, then through sandbox and network enforcement.
+
 Here are the helper names used later in formulas. None is assumed background
 knowledge:
 
@@ -120,7 +224,30 @@ knowledge:
 | `X(Σ)` | The value of state component or derived set `X` in snapshot `Σ`; for example, `Q(Σ′)` is the pending-answer set in the next state. |
 | `TurnOf(c)` | The turn that owns call `c`. |
 | `Turns(Σ)` | The turns represented in state `Σ`. |
-| `Owner(t)` | The user submission or thread/session that owns turn `t`, as specified by the surrounding formula. |
+| `Owner(t)` | The thread/session or originating submission identity associated with turn `t`; it is not the raw input vector. |
+| `SubmissionId(u)` | The unique ID assigned to submission `u` before it enters the session queue. |
+| `TurnId(t)` | The ID of turn `t`; for a new user turn it is normally derived from the submission ID. |
+| `InputOf(t)` | User-input items accepted by turn `t`. |
+| `AcceptedBy(t,u)` | True when existing turn `t` accepts submission `u` into its pending-input queue. |
+| `ProfileOf(t)` | The effective permission/approval/network profile applied to turn `t`. |
+| `ExecPolicy(c)` | Raw implementation decision for command call `c`: allow, prompt, or forbidden. |
+| `PolicyChoice(Σ,c)` | Normalized authorization branch after execpolicy and approval-mode filtering. |
+| `ApprovalModeAllowsPrompt(P,c)` | True when the active approval configuration permits a prompt for call category `c`. |
+| `ThreadExists(Σ,id)` | True when `id` names a thread present in `T(Σ)`. |
+| `DirectInputAllowed(Σ,id)` | True when the session accepts direct user input for thread `id`. |
+| `InputWithinBoundary(items)` | True when the submitted input satisfies size, shape, and protocol limits. |
+| `SettingsOverridesValid(overrides)` | True when requested per-turn settings are recognized and permitted. |
+| `NoActiveRegularTurn(Σ,u)` | True when submission `u` has no ordinary model loop currently active in its target session. |
+| `ActiveRegularTurn(Σ,t)` | True when ordinary turn `t` is the active model loop in `Σ`. |
+| `ActiveNonSteerableTurn(Σ)` | True when the active task cannot accept steering input, such as review or compaction work. |
+| `ThreadOf(t)` | The thread identity owning turn `t`. |
+| `Status(t)` / `TaskOf(t)` | The lifecycle status / task classification of turn `t`. |
+| `RegularTask` | The ordinary user-request model-loop task kind. |
+| `PendingInput(t,Σ)` | Input items accepted for `t` but not yet consumed by its model loop. |
+| `NoNewNormalTurnCreated(Σ,Σ′)` | True when a transition preserves the existing normal turn rather than creating another. |
+| `Error(Σ,u)` / `NoToolEffectStarted(Σ,Σ′)` | An error record for `u` / the absence of a started tool side effect during the transition. |
+| `ApplyOverrides(P,overrides)` | The profile produced by applying valid per-turn overrides to profile `P`. |
+| `NewCancellationState(t)` | Fresh cancellation state associated with turn `t`. |
 | `ActiveNormalTurns(s)` | The number of ordinary user-turn model loops active in live session `s`. |
 | `CurrentFacts(Σ,t)` | Current instructions, settings, environment facts, and selected tool specifications for turn `t`. |
 | `Normalize(h)` | Repair/project history `h` into coherent model-history shape, including call/output pairing. |
@@ -178,10 +305,126 @@ that every attempted request is unconditionally small enough.
 StartThread() : add a new thread to T and create a live session in A
 Resume(thread) : reconstruct a new live session from H for that thread
 Fork(thread) : flush/snapshot its durable history and create a new thread identity
-Submit(u) : create an active turn t for user input u
 Cancel(t) : mark K for t cancelled and stop admitting new turn work
 CompleteTurn(t) : record terminal outcome and clear t from active work
 ```
+
+### What `Submit(u)` requires and changes
+
+The external request is first enqueued, then handled asynchronously:
+
+```text
+Σ ──Enqueue(u)──▶ Σ₁ ──Handle(u)──▶ Σ₂
+```
+
+`Enqueue(u)` validates/maps the request at the API boundary, creates a
+`Submission` ID, attaches tracing/client correlation, and sends an `Op::UserInput`
+through the session submission channel. The handler applies settings and then
+chooses one of three input-routing branches.
+
+#### New regular turn
+
+```text
+AcceptableSubmit(Σ₁,u) ∧ NoActiveRegularTurn(Σ₁,u)
+```
+
+produces a new turn `t`:
+
+```text
+Σ₁ ──Handle(u)──▶ Σ₂ ⇒
+  ∃t ∈ Turns(Σ₂):
+    TurnId(t) = SubmissionId(u)
+    ∧ ThreadOf(t) = u.thread_id
+    ∧ InputOf(t) = u.input_items
+    ∧ Status(t) = in_progress
+    ∧ TaskOf(t) = RegularTask
+```
+
+The state effects are:
+
+```text
+A(Σ₂) = A(Σ₁) + TurnContext(t) + ActiveTurn(t) + InputQueue(t)
+P(Σ₂) = ApplyOverrides(P(Σ₁), u.settings_overrides)
+K(Σ₂) = NewCancellationState(t)
+```
+
+The user prompt is then recorded into durable history and projected into turn
+items/events according to persistence policy; model sampling begins only after
+the turn context and tool router are built.
+
+#### Steering an active regular turn
+
+If a regular turn `t` is already active:
+
+```text
+AcceptableSubmit(Σ₁,u) ∧ ActiveRegularTurn(Σ₁,t)
+```
+
+then no second normal model loop is created:
+
+```text
+Σ₁ ──Handle(u)──▶ Σ₂ ⇒
+  t ∈ Turns(Σ₂)
+  ∧ PendingInput(t,Σ₂) = PendingInput(t,Σ₁) ⧺ [u.input_items]
+  ∧ AcceptedBy(t,u)
+  ∧ NoNewNormalTurnCreated(Σ₁,Σ₂)
+```
+
+The existing turn consumes the queued input through its mailbox/input-queue
+logic.
+
+#### Rejected submission
+
+Invalid, oversized, disallowed, or non-steerable submissions produce an error
+transition:
+
+```text
+¬AcceptableSubmit(Σ₁,u) ∨ ActiveNonSteerableTurn(Σ₁)
+  ⇒ Σ₁ ──Handle(u)──▶ Σ₂
+  ∧ Error(Σ₂,u)
+  ∧ NoToolEffectStarted(Σ₁,Σ₂)
+```
+
+This is why the stronger statement “every submission creates a turn” is not a
+valid invariant.
+
+### Submission → policy → tool routing
+
+After a new turn is created, the effective profile `P(Σ₂)` influences tool
+exposure and later authorization, but it does not itself select a tool:
+
+```text
+Submit(u)
+  → TurnContext(t) + ProfileOf(t)
+  → ExposeTools(Σ₂,t)
+  → model proposes ToolCall c
+  → registry resolves runtime
+  → PolicyChoice(Σ,c)
+  → Dispatch / AwaitPolicy / RejectToolCall
+```
+
+The post-model policy branches are:
+
+```text
+PolicyChoice(Σ,c) = allow
+  ⇒ Σ ──Dispatch(c)──▶ Σ′
+```
+
+```text
+PolicyChoice(Σ,c) = require_approval
+  ⇒ Σ ──RequestApproval(c)──▶ Σ′
+  ∧ c ∈ Q(Σ′) ∧ ¬Running(c)
+```
+
+```text
+PolicyChoice(Σ,c) = deny
+  ⇒ Σ ──RejectToolCall(c)──▶ Σ′
+  ∧ ¬StartLocalEffect(c)
+```
+
+Approval can move a pending call into the allow branch; denial creates a
+correlated denied result. Sandbox and network predicates still apply after an
+allow decision.
 
 The central serialization rule is:
 
@@ -348,10 +591,14 @@ shorthand here; no scheduler/fairness proof was established in this pass.
 | Model concern | Code to read |
 | --- | --- |
 | Submit, active sessions, events, approval waiters, persistence hooks | `codex-rs/core/src/session/mod.rs` |
+| Submission envelope and operation variants | `codex-rs/protocol/src/protocol.rs` (`Submission`, `Op::UserInput`, `Event`) |
+| New-turn versus steering input handling | `codex-rs/core/src/session/handlers.rs` and `session/input_queue.rs` |
+| Live active-turn and turn-state residency | `codex-rs/core/src/state/turn.rs` and `state/session.rs` |
 | Turn context, tool construction, sampling, cancellation | `codex-rs/core/src/session/turn.rs` |
 | Model item → call → invocation | `codex-rs/core/src/tools/router.rs` |
 | Registry, hooks, execution lifecycle, output conversion | `codex-rs/core/src/tools/registry.rs` |
 | Allow / needs approval / forbidden policy | `codex-rs/core/src/exec_policy.rs` and `tools/sandboxing.rs` |
+| Policy-dependent tool routing | `codex-rs/core/src/tools/router.rs`, `registry.rs`, and `exec_policy.rs` |
 | Call/output normalization and bounded context | `codex-rs/core/src/context_manager/` and `compact.rs` |
 | Start, resume, and fork from rollout/store history | `codex-rs/core/src/thread_manager.rs`, `thread-store`, and `rollout` |
 

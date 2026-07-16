@@ -1,0 +1,3 @@
+display_name: Formal Model Consistency Review
+short_description: Check formal models for consistency
+default_prompt: Review formal model documents for undefined symbols, contradictory transitions, and mismatches between equations, diagrams, and implementation references.
