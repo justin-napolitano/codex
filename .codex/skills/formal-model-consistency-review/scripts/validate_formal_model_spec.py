@@ -14,6 +14,9 @@ def validate(path: Path, coverage_path: Path | None = None) -> list[str]:
     components = state.get("components", {})
     symbols = data.get("symbols", {})
     transitions = data.get("transitions", [])
+    cost_dimensions = set(data.get("cost_model", {}).get("dimensions", []))
+    if not cost_dimensions:
+        errors.append("cost_model.dimensions must be declared")
     if state.get("name") != "Σ":
         errors.append("state.name must be Σ")
     if set(components) != set("TAHQPKE"):
@@ -56,6 +59,11 @@ def validate(path: Path, coverage_path: Path | None = None) -> list[str]:
                 errors.append(f"transition {transition.get('name')} references unknown coverage {coverage_id}")
         if transition.get("uncertainty") not in {"observed", "inferred", "normative", "hypothesis", "unverified"}:
             errors.append(f"transition {transition.get('name')} has invalid uncertainty")
+        if not transition.get("cost_dimensions"):
+            errors.append(f"transition {transition.get('name')} must declare cost_dimensions")
+        for dimension in transition.get("cost_dimensions", []):
+            if dimension not in cost_dimensions:
+                errors.append(f"transition {transition.get('name')} uses undeclared cost dimension {dimension}")
     for invariant in data.get("invariants", []):
         if not invariant.get("name") or not invariant.get("scope") or not invariant.get("formula"):
             errors.append("each invariant requires name, scope, and formula")

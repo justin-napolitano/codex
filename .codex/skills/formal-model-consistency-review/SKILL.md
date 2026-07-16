@@ -51,6 +51,10 @@ between structural, semantic, and evidence consistency.
 
    Treat synthetic traces as path checks, not proof of runtime behavior.
 
+10. When reviewing cost claims, require an action-level cost vector, a declared
+    aggregation rule, a quality constraint, and a dated rate-card key. Keep
+    measured tokens/time, estimated money, and unknown charges separate.
+
 ## Machine-checkable subset
 
 Use JSON to register state components, symbols, predicates, functions,
@@ -71,6 +75,8 @@ gate, not as proof of arbitrary first-order logic or of the implementation.
 - Any claim stronger than the inspected implementation is labeled as an abstraction, recommendation, or hypothesis.
 - Every important implementation entry point is mapped to a transition or explicitly marked `unmodeled`.
 - Every invariant names the transitions responsible for preserving it.
+- Every modeled transition declares the cost dimensions it may consume.
+- Cost optimization is recommendation-only unless an explicit authorization is added.
 
 ## Output
 

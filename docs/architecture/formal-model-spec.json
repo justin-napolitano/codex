@@ -2,6 +2,18 @@
   "model": "codex-formal-operational-model",
   "implementation_commit": "be0e0d791a1b735de307f013037b091d24f57484",
   "coverage_inventory": "audit/runtime-coverage-inventory.json",
+  "cost_model": {
+    "dimensions": [
+      "input_tokens", "cached_input_tokens", "output_tokens", "reasoning_output_tokens",
+      "wall_time_ms", "sampling_time_ms", "tool_blocking_ms", "tool_call_count",
+      "tool_output_tokens", "compaction_summary_tokens", "network_bytes", "filesystem_process_effects",
+      "monetary_cost", "risk_cost"
+    ],
+    "aggregation": "TurnCost(t) = sum(Cost(state_before, action, state_after))",
+    "money_policy": "unknown when a dated provider/model/service-tier rate is unavailable",
+    "optimization_mode": "recommendation_only",
+    "quality_constraint": "Quality(trajectory) >= q_min"
+  },
   "state": {
     "name": "Σ",
     "components": {
@@ -39,15 +51,15 @@
     ,"ContextExceedsBound": {"kind": "predicate", "args": ["Σ", "Turn"]}
   },
   "transitions": [
-    {"name": "Submit-new-turn", "action": "Submit", "preconditions": ["AcceptableSubmit", "NoActiveRegularTurn"], "writes": ["A", "P", "K", "H", "E"], "postconditions": ["TurnId=SubmissionId", "Status=in_progress"], "uncertainty": "observed", "coverage_ids": ["COV-001", "COV-002"]},
-    {"name": "Submit-steering", "action": "Submit", "preconditions": ["AcceptableSubmit", "ActiveRegularTurn"], "writes": ["A", "E"], "postconditions": ["PendingInput_appends", "NoNewNormalTurnCreated"], "uncertainty": "observed", "coverage_ids": ["COV-003", "COV-004"]},
-    {"name": "Submit-rejected", "action": "Submit", "preconditions": ["not AcceptableSubmit OR ActiveNonSteerableTurn"], "writes": ["E"], "postconditions": ["Error", "NoToolEffectStarted"], "uncertainty": "inferred", "coverage_ids": []},
-    {"name": "Tool-allow", "action": "Dispatch", "preconditions": ["PolicyChoice=allow"], "writes": ["A", "H", "E"], "postconditions": ["ResultCorrelated"], "uncertainty": "observed", "coverage_ids": ["COV-007"]},
-    {"name": "Tool-approval", "action": "RequestApproval", "preconditions": ["PolicyChoice=require_approval"], "writes": ["Q", "E"], "postconditions": ["PendingApproval", "not Running"], "uncertainty": "observed", "coverage_ids": ["COV-017"]},
-    {"name": "Tool-deny", "action": "RejectToolCall", "preconditions": ["PolicyChoice=deny"], "writes": ["H", "E"], "postconditions": ["not StartLocalEffect"], "uncertainty": "observed", "coverage_ids": ["COV-008"]},
-    {"name": "Resume", "action": "Resume", "preconditions": ["ThreadExists"], "writes": ["A", "H"], "postconditions": ["InitialHistoryInstalled"], "uncertainty": "observed", "coverage_ids": ["COV-014"]},
-    {"name": "Compact-and-normalize", "action": "Compact", "preconditions": ["ContextExceedsBound"], "writes": ["H", "A"], "postconditions": ["ModelHistoryNormalized"], "uncertainty": "inferred", "coverage_ids": ["COV-015"]},
-    {"name": "Fork", "action": "Fork", "preconditions": ["ThreadExists"], "writes": ["T", "H", "A"], "postconditions": ["NewThreadIdentity"], "uncertainty": "unverified", "coverage_ids": ["COV-018"]}
+    {"name": "Submit-new-turn", "action": "Submit", "preconditions": ["AcceptableSubmit", "NoActiveRegularTurn"], "writes": ["A", "P", "K", "H", "E"], "postconditions": ["TurnId=SubmissionId", "Status=in_progress"], "uncertainty": "observed", "coverage_ids": ["COV-001", "COV-002"], "cost_dimensions": ["input_tokens", "cached_input_tokens", "wall_time_ms"]},
+    {"name": "Submit-steering", "action": "Submit", "preconditions": ["AcceptableSubmit", "ActiveRegularTurn"], "writes": ["A", "E"], "postconditions": ["PendingInput_appends", "NoNewNormalTurnCreated"], "uncertainty": "observed", "coverage_ids": ["COV-003", "COV-004"], "cost_dimensions": ["input_tokens", "cached_input_tokens", "wall_time_ms"]},
+    {"name": "Submit-rejected", "action": "Submit", "preconditions": ["not AcceptableSubmit OR ActiveNonSteerableTurn"], "writes": ["E"], "postconditions": ["Error", "NoToolEffectStarted"], "uncertainty": "inferred", "coverage_ids": [], "cost_dimensions": ["wall_time_ms", "risk_cost"]},
+    {"name": "Tool-allow", "action": "Dispatch", "preconditions": ["PolicyChoice=allow"], "writes": ["A", "H", "E"], "postconditions": ["ResultCorrelated"], "uncertainty": "observed", "coverage_ids": ["COV-007"], "cost_dimensions": ["tool_blocking_ms", "tool_call_count", "tool_output_tokens", "network_bytes", "filesystem_process_effects", "risk_cost"]},
+    {"name": "Tool-approval", "action": "RequestApproval", "preconditions": ["PolicyChoice=require_approval"], "writes": ["Q", "E"], "postconditions": ["PendingApproval", "not Running"], "uncertainty": "observed", "coverage_ids": ["COV-017"], "cost_dimensions": ["wall_time_ms", "risk_cost"]},
+    {"name": "Tool-deny", "action": "RejectToolCall", "preconditions": ["PolicyChoice=deny"], "writes": ["H", "E"], "postconditions": ["not StartLocalEffect"], "uncertainty": "observed", "coverage_ids": ["COV-008"], "cost_dimensions": ["wall_time_ms", "risk_cost"]},
+    {"name": "Resume", "action": "Resume", "preconditions": ["ThreadExists"], "writes": ["A", "H"], "postconditions": ["InitialHistoryInstalled"], "uncertainty": "observed", "coverage_ids": ["COV-014"], "cost_dimensions": ["input_tokens", "cached_input_tokens", "wall_time_ms"]},
+    {"name": "Compact-and-normalize", "action": "Compact", "preconditions": ["ContextExceedsBound"], "writes": ["H", "A"], "postconditions": ["ModelHistoryNormalized"], "uncertainty": "inferred", "coverage_ids": ["COV-015"], "cost_dimensions": ["input_tokens", "output_tokens", "compaction_summary_tokens", "wall_time_ms"]},
+    {"name": "Fork", "action": "Fork", "preconditions": ["ThreadExists"], "writes": ["T", "H", "A"], "postconditions": ["NewThreadIdentity"], "uncertainty": "unverified", "coverage_ids": ["COV-018"], "cost_dimensions": ["input_tokens", "wall_time_ms"]}
   ],
   "invariants": [
     {"name": "single-normal-turn", "scope": ["A"], "formula": "ActiveNormalTurns(s) <= 1", "preserved_by": ["Submit-new-turn", "Submit-steering", "Resume", "Fork"]},
