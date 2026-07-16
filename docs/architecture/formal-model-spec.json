@@ -1,5 +1,7 @@
 {
   "model": "codex-formal-operational-model",
+  "implementation_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+  "coverage_inventory": "audit/runtime-coverage-inventory.json",
   "state": {
     "name": "Σ",
     "components": {
@@ -13,9 +15,9 @@
     }
   },
   "symbols": {
-    "Submission": {"kind": "sort"},
-    "Turn": {"kind": "sort"},
-    "ToolCall": {"kind": "sort"},
+    "Submission": {"kind": "sort", "uncertainty": "observed"},
+    "Turn": {"kind": "sort", "uncertainty": "observed"},
+    "ToolCall": {"kind": "sort", "uncertainty": "observed"},
     "Decision": {"kind": "set", "values": ["allow", "require_approval", "deny"]},
     "AcceptableSubmit": {"kind": "predicate", "args": ["Σ", "Submission"]},
     "NoActiveRegularTurn": {"kind": "predicate", "args": ["Σ", "Submission"]},
@@ -24,19 +26,32 @@
     "ThreadExists": {"kind": "predicate", "args": ["Σ", "thread_id"]},
     "PendingInput": {"kind": "function", "args": ["Turn", "Σ"], "returns": "input_items"},
     "TurnId": {"kind": "function", "args": ["Turn"], "returns": "turn_id"},
-    "SubmissionId": {"kind": "function", "args": ["Submission"], "returns": "submission_id"}
+    "SubmissionId": {"kind": "function", "args": ["Submission"], "returns": "submission_id"},
+    "ResultCorrelated": {"kind": "predicate", "args": ["ToolCall"]},
+    "PendingApproval": {"kind": "predicate", "args": ["ToolCall"]},
+    "Running": {"kind": "predicate", "args": ["ToolCall"]},
+    "ActiveNonSteerableTurn": {"kind": "predicate", "args": ["Σ"]},
+    "NoNewNormalTurnCreated": {"kind": "predicate", "args": ["Σ", "Σ′"]},
+    "Error": {"kind": "predicate", "args": ["Σ", "Submission"]},
+    "NoToolEffectStarted": {"kind": "predicate", "args": ["Σ", "Σ′"]},
+    "NeedsOutput": {"kind": "predicate", "args": ["ToolCall"]},
+    "CallId": {"kind": "function", "args": ["ToolCall"], "returns": "call_id"}
+    ,"ContextExceedsBound": {"kind": "predicate", "args": ["Σ", "Turn"]}
   },
   "transitions": [
-    {"name": "Submit-new-turn", "action": "Submit", "preconditions": ["AcceptableSubmit", "NoActiveRegularTurn"], "writes": ["A", "P", "K", "H", "E"], "postconditions": ["TurnId=SubmissionId", "Status=in_progress"]},
-    {"name": "Submit-steering", "action": "Submit", "preconditions": ["AcceptableSubmit", "ActiveRegularTurn"], "writes": ["A", "E"], "postconditions": ["PendingInput_appends", "NoNewNormalTurnCreated"]},
-    {"name": "Submit-rejected", "action": "Submit", "preconditions": ["not AcceptableSubmit OR ActiveNonSteerableTurn"], "writes": ["E"], "postconditions": ["Error", "NoToolEffectStarted"]},
-    {"name": "Tool-allow", "action": "Dispatch", "preconditions": ["PolicyChoice=allow"], "writes": ["A", "H", "E"], "postconditions": ["ResultCorrelated"]},
-    {"name": "Tool-approval", "action": "RequestApproval", "preconditions": ["PolicyChoice=require_approval"], "writes": ["Q", "E"], "postconditions": ["PendingApproval", "not Running"]},
-    {"name": "Tool-deny", "action": "RejectToolCall", "preconditions": ["PolicyChoice=deny"], "writes": ["H", "E"], "postconditions": ["not StartLocalEffect"]}
+    {"name": "Submit-new-turn", "action": "Submit", "preconditions": ["AcceptableSubmit", "NoActiveRegularTurn"], "writes": ["A", "P", "K", "H", "E"], "postconditions": ["TurnId=SubmissionId", "Status=in_progress"], "uncertainty": "observed", "coverage_ids": ["COV-001", "COV-002"]},
+    {"name": "Submit-steering", "action": "Submit", "preconditions": ["AcceptableSubmit", "ActiveRegularTurn"], "writes": ["A", "E"], "postconditions": ["PendingInput_appends", "NoNewNormalTurnCreated"], "uncertainty": "observed", "coverage_ids": ["COV-003", "COV-004"]},
+    {"name": "Submit-rejected", "action": "Submit", "preconditions": ["not AcceptableSubmit OR ActiveNonSteerableTurn"], "writes": ["E"], "postconditions": ["Error", "NoToolEffectStarted"], "uncertainty": "inferred", "coverage_ids": []},
+    {"name": "Tool-allow", "action": "Dispatch", "preconditions": ["PolicyChoice=allow"], "writes": ["A", "H", "E"], "postconditions": ["ResultCorrelated"], "uncertainty": "observed", "coverage_ids": ["COV-007"]},
+    {"name": "Tool-approval", "action": "RequestApproval", "preconditions": ["PolicyChoice=require_approval"], "writes": ["Q", "E"], "postconditions": ["PendingApproval", "not Running"], "uncertainty": "observed", "coverage_ids": ["COV-017"]},
+    {"name": "Tool-deny", "action": "RejectToolCall", "preconditions": ["PolicyChoice=deny"], "writes": ["H", "E"], "postconditions": ["not StartLocalEffect"], "uncertainty": "observed", "coverage_ids": ["COV-008"]},
+    {"name": "Resume", "action": "Resume", "preconditions": ["ThreadExists"], "writes": ["A", "H"], "postconditions": ["InitialHistoryInstalled"], "uncertainty": "observed", "coverage_ids": ["COV-014"]},
+    {"name": "Compact-and-normalize", "action": "Compact", "preconditions": ["ContextExceedsBound"], "writes": ["H", "A"], "postconditions": ["ModelHistoryNormalized"], "uncertainty": "inferred", "coverage_ids": ["COV-015"]},
+    {"name": "Fork", "action": "Fork", "preconditions": ["ThreadExists"], "writes": ["T", "H", "A"], "postconditions": ["NewThreadIdentity"], "uncertainty": "unverified", "coverage_ids": ["COV-018"]}
   ],
   "invariants": [
-    {"name": "single-normal-turn", "scope": ["A"], "formula": "ActiveNormalTurns(s) <= 1"},
-    {"name": "approval-pauses-execution", "scope": ["Q", "A"], "formula": "PendingApproval(c) => not Running(c)"},
-    {"name": "call-result-correlation", "scope": ["H"], "formula": "NeedsOutput(c) => exists r: CallId(r)=CallId(c)"}
+    {"name": "single-normal-turn", "scope": ["A"], "formula": "ActiveNormalTurns(s) <= 1", "preserved_by": ["Submit-new-turn", "Submit-steering", "Resume", "Fork"]},
+    {"name": "approval-pauses-execution", "scope": ["Q", "A"], "formula": "PendingApproval(c) => not Running(c)", "preserved_by": ["Tool-approval", "Tool-deny"]},
+    {"name": "call-result-correlation", "scope": ["H"], "formula": "NeedsOutput(c) => exists r: CallId(r)=CallId(c)", "preserved_by": ["Tool-allow", "Tool-deny", "Compact-and-normalize"]}
   ]
 }

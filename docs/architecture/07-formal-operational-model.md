@@ -12,6 +12,29 @@ properties you would want to enforce in a system built from the same pattern.
 The distinction matters because a clean formula can be stronger than the code
 that inspired it.
 
+## Known limitations and next improvement
+
+This model is intentionally incomplete. The covered paths are submission,
+steering, policy choice, approval, tool routing, persistence, live events, and
+the main local/remote execution boundaries. The following runtime behavior is
+not yet fully defined by transitions, postconditions, and implementation
+evidence:
+
+- resume and history reconstruction;
+- compaction and call/output normalization;
+- fork and snapshot semantics;
+- cancellation during approval or execution;
+- retries after partial completion; and
+- platform-specific and remote-tool adapter behavior.
+
+The coverage inventory marks these paths as `partially_covered` or `unmodeled`
+instead of silently treating them as established behavior. The next formal
+modeling pass should trace each path in the implementation, record its state
+reads and writes, define its guards and postconditions, add evidence links and
+representative traces, and then rerun the consistency and research validators.
+Until that work is complete, formulas involving these paths are explanatory
+abstractions or explicit hypotheses, not claims of complete runtime coverage.
+
 ## Read this notation first
 
 You only need the symbols in this table. They are ordinary mathematical
@@ -66,6 +89,14 @@ The machine-checkable declaration for this page is
 [`formal-model-spec.json`](formal-model-spec.json); it validates names, state
 residency, transition contracts, and invariant scopes but does not constitute a
 formal proof.
+
+The second-pass implementation coverage map is in the
+[runtime coverage inventory](audit/runtime-coverage-inventory.md). It records
+which Rust entry points support each transition and leaves resume, compaction,
+and fork paths explicitly marked when their evidence or model coverage is
+incomplete. The accompanying
+[trace fixtures](audit/runtime-traces.json) exercise representative approval
+and steering paths without claiming to exhaust the runtime.
 
 The old shorthand “every submission creates a turn” is too strong: a regular
 turn can accept additional input as steering. The precise formulas appear in

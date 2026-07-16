@@ -1,0 +1,26 @@
+{
+  "traces": [
+    {
+      "trace_id": "TRACE-submit-approval-dispatch",
+      "initial_state": {"active_normal_turns": 0, "pending_approval": false},
+      "trace": [
+        {"action": "Submit"},
+        {"action": "Handle"},
+        {"action": "ToolCall"},
+        {"action": "PolicyChoice", "decision": "require_approval"},
+        {"action": "RequestApproval"},
+        {"action": "Approve"},
+        {"action": "Dispatch"},
+        {"action": "Result"}
+      ]
+    },
+    {
+      "trace_id": "TRACE-submit-steering",
+      "initial_state": {"active_normal_turns": 1, "pending_approval": false},
+      "trace": [
+        {"action": "Submit"},
+        {"action": "Steer"}
+      ]
+    }
+  ]
+}

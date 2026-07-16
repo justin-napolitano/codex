@@ -1,0 +1,24 @@
+{
+  "model": "codex-formal-operational-model",
+  "implementation_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+  "coverage": [
+    {"coverage_id": "COV-001", "entrypoint": "turn_start_inner", "source": "codex-rs/app-server/src/request_processors/turn_processor.rs#L462", "transition": "Submit-new-turn", "status": "covered", "uncertainty": "observed"},
+    {"coverage_id": "COV-002", "entrypoint": "submit_user_input_with_client_user_message_id", "source": "codex-rs/core/src/session/mod.rs#L743", "transition": "Enqueue", "status": "covered", "uncertainty": "observed"},
+    {"coverage_id": "COV-003", "entrypoint": "user_input_or_turn_inner", "source": "codex-rs/core/src/session/handlers.rs#L198", "transition": "Submit-steering", "status": "covered", "uncertainty": "observed"},
+    {"coverage_id": "COV-004", "entrypoint": "steer_input", "source": "codex-rs/core/src/session/mod.rs#L3873", "transition": "Submit-steering", "status": "covered", "uncertainty": "observed"},
+    {"coverage_id": "COV-005", "entrypoint": "build_tool_router", "source": "codex-rs/core/src/tools/spec_plan.rs#L1", "transition": "ExposeTools", "status": "covered", "uncertainty": "observed"},
+    {"coverage_id": "COV-006", "entrypoint": "ToolRouter::build_tool_call", "source": "codex-rs/core/src/tools/router.rs#L112", "transition": "ReceiveToolCall", "status": "covered", "uncertainty": "observed"},
+    {"coverage_id": "COV-007", "entrypoint": "ToolRegistry::dispatch", "source": "codex-rs/core/src/tools/registry.rs#L325", "transition": "Tool-allow", "status": "partially_covered", "uncertainty": "observed"},
+    {"coverage_id": "COV-008", "entrypoint": "exec_policy", "source": "codex-rs/core/src/exec_policy.rs#L269", "transition": "PolicyChoice", "status": "covered", "uncertainty": "observed"},
+    {"coverage_id": "COV-009", "entrypoint": "sandbox configuration", "source": "codex-rs/core/src/tools/sandboxing.rs#L65", "transition": "SandboxEnforce", "status": "partially_covered", "uncertainty": "observed"},
+    {"coverage_id": "COV-010", "entrypoint": "ToolCallRuntime", "source": "codex-rs/core/src/tools/parallel.rs#L94", "transition": "Cancel-or-parallelize", "status": "covered", "uncertainty": "observed"},
+    {"coverage_id": "COV-011", "entrypoint": "UnifiedExecRuntime", "source": "codex-rs/core/src/tools/runtimes/unified_exec.rs#L258", "transition": "Execute-local", "status": "partially_covered", "uncertainty": "observed"},
+    {"coverage_id": "COV-012", "entrypoint": "send_event_raw_with_persistence", "source": "codex-rs/core/src/session/mod.rs#L1967", "transition": "Emit-and-persist", "status": "covered", "uncertainty": "observed"},
+    {"coverage_id": "COV-013", "entrypoint": "record_user_prompt_and_emit_turn_item", "source": "codex-rs/core/src/session/mod.rs#L3829", "transition": "Persist-user-input", "status": "covered", "uncertainty": "observed"},
+    {"coverage_id": "COV-014", "entrypoint": "resume/reconstruct session", "source": "codex-rs/core/src/session/mod.rs", "transition": "Resume", "status": "partially_covered", "uncertainty": "observed"},
+    {"coverage_id": "COV-015", "entrypoint": "compaction/history normalization", "source": "codex-rs/core/src", "transition": "Compact-and-normalize", "status": "partially_covered", "uncertainty": "inferred"},
+    {"coverage_id": "COV-016", "entrypoint": "remote MCP handler", "source": "codex-rs/core/src/tools/handlers/mcp.rs#L67", "transition": "Execute-remote", "status": "covered", "uncertainty": "observed"},
+    {"coverage_id": "COV-017", "entrypoint": "approval request/response", "source": "codex-rs/app-server/src/outgoing_message.rs#L1013", "transition": "Tool-approval", "status": "covered", "uncertainty": "observed"},
+    {"coverage_id": "COV-018", "entrypoint": "fork/snapshot", "source": "codex-rs/core/src/session", "transition": "Fork", "status": "unmodeled", "uncertainty": "unverified"}
+  ]
+}

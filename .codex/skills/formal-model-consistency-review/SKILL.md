@@ -28,7 +28,8 @@ between structural, semantic, and evidence consistency.
 
    ```bash
    python3 .codex/skills/formal-model-consistency-review/scripts/validate_formal_model_spec.py \
-     docs/architecture/formal-model-spec.json
+     docs/architecture/formal-model-spec.json \
+     --coverage docs/architecture/audit/runtime-coverage-inventory.json
    ```
 
    The registry is a constrained cross-reference check, not a theorem prover.
@@ -39,6 +40,16 @@ between structural, semantic, and evidence consistency.
 6. Check diagrams against prose and equations. Every named node or transition in a Mermaid chart should have a corresponding definition; prose must not claim a branch that the chart omits.
 7. Check evidence links. Implementation claims must point to exact files, symbols, tests, or generated schemas. Mark design recommendations and abstractions as such; do not present them as observed runtime facts.
 8. Write findings with severity (`error`, `warning`, or `note`), location, violated invariant, evidence, and a proposed correction. Re-run the checker after edits.
+
+9. Validate representative lifecycle traces when available:
+
+   ```bash
+   python3 .codex/skills/formal-model-consistency-review/scripts/validate_formal_traces.py \
+     docs/architecture/formal-model-spec.json \
+     docs/architecture/audit/runtime-traces.json
+   ```
+
+   Treat synthetic traces as path checks, not proof of runtime behavior.
 
 ## Machine-checkable subset
 
@@ -58,6 +69,8 @@ gate, not as proof of arbitrary first-order logic or of the implementation.
 - Durable records and live delivery envelopes are related but not interchangeable.
 - Identifiers used for correlation (`thread_id`, `turn_id`, `submission_id`, `call_id`) have distinct scopes and relationships.
 - Any claim stronger than the inspected implementation is labeled as an abstraction, recommendation, or hypothesis.
+- Every important implementation entry point is mapped to a transition or explicitly marked `unmodeled`.
+- Every invariant names the transitions responsible for preserving it.
 
 ## Output
 

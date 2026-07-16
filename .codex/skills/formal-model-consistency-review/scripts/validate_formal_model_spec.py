@@ -7,12 +7,13 @@ import json
 from pathlib import Path
 
 
-def validate(path: Path) -> list[str]:
+def validate(path: Path, coverage_path: Path | None = None) -> list[str]:
     data = json.loads(path.read_text(encoding="utf-8"))
     errors: list[str] = []
     state = data.get("state", {})
     components = state.get("components", {})
     symbols = data.get("symbols", {})
+    transitions = data.get("transitions", [])
     if state.get("name") != "Σ":
         errors.append("state.name must be Σ")
     if set(components) != set("TAHQPKE"):
@@ -25,7 +26,21 @@ def validate(path: Path) -> list[str]:
         if spec.get("kind") in {"predicate", "function"} and not spec.get("args"):
             errors.append(f"symbol {name} must declare args")
     known = set(symbols)
-    for transition in data.get("transitions", []):
+    transition_names = {transition.get("name") for transition in transitions}
+    coverage = {}
+    if coverage_path:
+        coverage_data = json.loads(coverage_path.read_text(encoding="utf-8"))
+        coverage = {item.get("coverage_id"): item for item in coverage_data.get("coverage", [])}
+        if len(coverage) != len(coverage_data.get("coverage", [])):
+            errors.append("coverage_ids must be unique")
+        for item in coverage.values():
+            source = item.get("source", "").split("#", 1)[0]
+            source_root = coverage_path.parent.parent.parent.parent
+            if source and not (source_root / source).exists():
+                errors.append(f"coverage {item.get('coverage_id')} source does not resolve: {source}")
+            if item.get("status") not in {"covered", "partially_covered", "unmodeled"}:
+                errors.append(f"coverage {item.get('coverage_id')} has invalid status")
+    for transition in transitions:
         for field in ("name", "action", "preconditions", "writes", "postconditions"):
             if not transition.get(field):
                 errors.append(f"transition {transition.get('name', '<unnamed>')} missing {field}")
@@ -36,20 +51,29 @@ def validate(path: Path) -> list[str]:
             base = predicate.replace("not ", "").split(" OR ")[0].split("=")[0]
             if base and base not in known and base not in {"ActiveNonSteerableTurn"}:
                 errors.append(f"transition {transition.get('name')} references undeclared predicate {base}")
+        for coverage_id in transition.get("coverage_ids", []):
+            if coverage_path and coverage_id not in coverage:
+                errors.append(f"transition {transition.get('name')} references unknown coverage {coverage_id}")
+        if transition.get("uncertainty") not in {"observed", "inferred", "normative", "hypothesis", "unverified"}:
+            errors.append(f"transition {transition.get('name')} has invalid uncertainty")
     for invariant in data.get("invariants", []):
         if not invariant.get("name") or not invariant.get("scope") or not invariant.get("formula"):
             errors.append("each invariant requires name, scope, and formula")
         for component in invariant.get("scope", []):
             if component not in components:
                 errors.append(f"invariant {invariant.get('name')} scopes undeclared component {component}")
+        for transition_name in invariant.get("preserved_by", []):
+            if transition_name not in transition_names:
+                errors.append(f"invariant {invariant.get('name')} references unknown transition {transition_name}")
     return errors
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("path", type=Path)
+    parser.add_argument("--coverage", type=Path)
     args = parser.parse_args()
-    errors = validate(args.path)
+    errors = validate(args.path, args.coverage)
     if errors:
         print(f"formal-model spec failed: {len(errors)} error(s)")
         for error in errors:
