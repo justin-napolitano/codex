@@ -1,0 +1,18 @@
+{
+  "protocol_id": "codex-skill-call-inventory-audit-2026-07-16",
+  "profile": "implementation-audit",
+  "research_question": "At the pinned Codex commit, what skill discovery, selection, resource, model-tool, CLI/process, authority, and telemetry calls occur around the agent loop, and which claims about those calls are directly supported by implementation or tests?",
+  "targets": [
+    "docs/architecture/08-skill-and-cli-call-inventory.md",
+    "docs/architecture/diagrams/07-skill-call-lifecycle.mmd",
+    "docs/architecture/diagrams/08-skill-script-command-boundaries.mmd",
+    "skill-call-inventory.json"
+  ],
+  "cutoff_date": "2026-07-16",
+  "search_venues": ["pinned local git worktree", "implementation and tests", "checked-in protocol/tool types"],
+  "search_terms": ["SkillsService snapshot roots cache", "SKILL.md injection", "explicit skill mention", "implicit skill invocation", "skills.list skills.read", "SkillProvider authority", "shell unified exec approval sandbox", "skill telemetry analytics"],
+  "allowed_source_classes": ["implementation", "test", "generated_or_checked_in_protocol", "maintainer_documentation"],
+  "inclusion_criteria": ["Every documented inventory call", "Every claim about a skill call's authority, visibility, side effect, failure, or telemetry", "Diagram edges that assert a call or boundary"],
+  "exclusion_criteria": ["A live production trace not present in the repository", "Exhaustive enumeration of arbitrary commands a skill author could write", "Unrelated plugin or memory behavior unless it participates in the skill path"],
+  "status": "complete"
+}

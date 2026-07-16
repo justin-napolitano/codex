@@ -48,6 +48,16 @@ python3 .codex/skills/run-research-pass/scripts/validate_research_pass.py path/t
 
 Use the templates under `assets/templates/` when automation is unavailable.
 
+For call/API inventories, add `skill-call-inventory.json` or
+`tool-call-routing-inventory.json` beside the six audit records. Each record
+should have a stable `call_id`, Markdown `anchor`, source and claim references,
+evidence IDs, and clickable `links`. Add
+`evidence_points` and `source_links` to `source-audit.json`, and use the
+human-readable Markdown companions when JSON fragments do not provide useful
+anchors. The validator automatically checks either optional extension when its
+inventory file is present. Use `--with-call-inventory` for skill inventories or
+`--with-tool-routing-inventory` for tool-call/routing inventories.
+
 ## Evidence rules
 
 - Prefer implementation, tests, generated schemas, specifications, and primary research over summaries.
@@ -69,5 +79,9 @@ Call a pass `complete` only when:
 - prose and diagrams reflect the final decisions;
 - counts in `research-pass-result.json` match the records; and
 - `validate_research_pass.py` exits successfully.
+
+For a clickable inventory pass, also require that every claim evidence item has
+an `evidence_id` and at least one link to an inspected source, and that every
+inventory call links to its target section and implementation evidence.
 
 Otherwise leave the pass `in_progress` and state exactly what remains.

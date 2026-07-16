@@ -1,0 +1,22 @@
+flowchart LR
+    Skill[SKILL.md instructions]
+    Model[Model proposes command]
+    Detector[Implicit attribution detector\nrecognizes runner/script path]
+    Router[Tool router / registry]
+    Policy[Approval policy]
+    Sandbox[OS or remote sandbox]
+    Exec[Shell / unified-exec runtime]
+    Process[python/bash/node/etc. process]
+    Output[Bounded output + call_id]
+    Telemetry[Skill attribution telemetry]
+
+    Skill --> Model
+    Model --> Router
+    Router --> Detector
+    Detector -. attribution only .-> Telemetry
+    Router --> Policy
+    Policy -->|allow| Sandbox
+    Policy -->|ask/deny| Output
+    Sandbox --> Exec --> Process
+    Process --> Output
+    Output --> Model

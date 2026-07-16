@@ -1,0 +1,34 @@
+flowchart LR
+    Model[Model planner]
+    Session[Session and turn state]
+    Router[ToolRouter]
+    Registry[ToolRegistry]
+    Policy[Exec policy]
+    Approval[Approval store / reviewer]
+    Sandbox[Sandbox and network policy]
+    Local[Local process / filesystem]
+    Exec[Exec-server boundary]
+    MCP[MCP provider]
+    App[App-server client]
+    Store[Rollout and history]
+
+    Model -->|proposes name + payload| Router
+    Session --> Router
+    Router --> Registry
+    Registry --> Policy
+    Policy --> Approval
+    Approval --> Sandbox
+    Sandbox --> Local
+    Sandbox --> Exec
+    Registry --> MCP
+    App --> Session
+    Registry --> Store
+    Local --> Store
+    Exec --> Store
+    MCP --> Store
+    Store --> Model
+
+    classDef authority fill:#f8d7da,stroke:#842029,color:#000;
+    classDef projection fill:#d1e7dd,stroke:#0f5132,color:#000;
+    class Model,App projection;
+    class Policy,Approval,Sandbox,Local,Exec,MCP authority;

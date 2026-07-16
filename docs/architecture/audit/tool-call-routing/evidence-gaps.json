@@ -1,0 +1,6 @@
+{
+  "gaps": [
+    {"gap_id":"TR-GAP-001","question":"What exact approval and sandbox behavior does each supported operating system enforce at the host boundary?","missing_evidence":"Platform-specific sandbox and reviewer implementations were not exhaustively audited.","searches_performed":"Inspected core sandboxing helpers and unified execution adapter.","impact":"Do not generalize core policy helpers into identical OS behavior.","next_action":"Run a platform-specific pass over codex-sandboxing and exec-server implementations.","status":"open"},
+    {"gap_id":"TR-GAP-002","question":"What guarantees do every external MCP or dynamic provider make about ordering, retries, and duplicate responses?","missing_evidence":"Remote provider implementations are outside this repository.","searches_performed":"Inspected MCP handler and dynamic response matching in session.","impact":"Inventory documents the adapter contract, not remote reliability semantics.","next_action":"Audit provider contracts and integration tests separately.","status":"open"}
+  ]
+}

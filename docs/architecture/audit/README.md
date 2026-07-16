@@ -34,3 +34,8 @@ Validate the record from the repository root:
 python3 .codex/skills/run-research-pass/scripts/validate_research_pass.py \
   docs/architecture/audit
 ```
+
+The companion [tool-call and routing audit](tool-call-routing/README.md) uses
+the same implementation-audit contract for the runtime dispatch path. The
+[skill/CLI inventory audit](skill-call-inventory/README.md) applies it to skill
+discovery, resource reads, and script command boundaries.

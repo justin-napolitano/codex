@@ -1,0 +1,29 @@
+sequenceDiagram
+    participant Client as TUI / app client
+    participant Service as SkillsService
+    participant Catalog as Skills extension/providers
+    participant Turn as Turn context
+    participant Model as Model
+    participant SkillTool as skills.list/read
+    participant Resource as SKILL.md/resource
+
+    Client->>Service: discover roots + load snapshot
+    Service-->>Catalog: metadata, errors, authority handles
+    Catalog->>Turn: render catalog metadata under budget
+    alt explicit user mention
+        Client->>Turn: UserInput::Skill or $skill mention
+        Turn->>Catalog: resolve selected entry
+        Catalog->>Resource: read through provider authority
+        Resource-->>Turn: skill instructions
+    else implicit command attribution
+        Turn->>Turn: inspect script/SKILL.md command path
+        Turn-->>Catalog: emit deduplicated implicit invocation
+    else model skill tools
+        Model->>SkillTool: skills.list(authority)
+        SkillTool-->>Model: bounded opaque handles
+        Model->>SkillTool: skills.read(authority, package, resource)
+        SkillTool->>Resource: provider-authorized read
+        Resource-->>SkillTool: structured content
+        SkillTool-->>Model: external JSON result
+    end
+    Turn->>Model: selected instructions + tool result

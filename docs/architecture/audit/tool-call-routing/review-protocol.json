@@ -1,0 +1,13 @@
+{
+  "protocol_id": "codex-tool-call-routing-review-2026-07-16",
+  "profile": "implementation-audit",
+  "research_question": "Where are model-proposed tool calls parsed, routed, authorized, executed, correlated, persisted, and returned in Codex?",
+  "targets": ["docs/architecture/09-tool-call-and-routing-inventory.md", "docs/architecture/diagrams/09-tool-call-routing-lifecycle.mmd", "docs/architecture/diagrams/10-tool-authority-boundaries.mmd"],
+  "cutoff_date": "2026-07-16",
+  "search_venues": ["codex-rs/core/src/tools", "codex-rs/core/src/session", "codex-rs/app-server/src", "focused repository tests"],
+  "search_terms": ["ToolRouter", "ToolRegistry", "ToolInvocation", "dispatch", "approval", "sandbox", "parallel", "call_id", "MCP", "persist"],
+  "allowed_source_classes": ["implementation", "test", "protocol", "official documentation"],
+  "inclusion_criteria": ["directly inspected implementation or focused test evidence", "source pinned to the reviewed repository commit", "evidence has an exact file and line anchor"],
+  "exclusion_criteria": ["uninspected search results", "claims about provider behavior not established by this repository", "exhaustive field-by-field protocol catalog"],
+  "status": "complete"
+}

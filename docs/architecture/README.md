@@ -24,6 +24,11 @@ reaches a terminal state.
    path from client request to persisted result.
 7. [Formal operational model](07-formal-operational-model.md) — a
    symbol-by-symbol state-machine model of the tooling runtime.
+8. [Skill and CLI call inventory](08-skill-and-cli-call-inventory.md) —
+   evidence-linked skill discovery, invocation, and script execution paths.
+9. [Tool-call and routing inventory](09-tool-call-and-routing-inventory.md) —
+   evidence-linked parsing, dispatch, authorization, execution adapters, and
+   result routing.
 
 ## Diagrams
 
@@ -39,6 +44,10 @@ link to the relevant source beside the explanation.
 | [Thread lifecycle and resume](diagrams/04-thread-lifecycle-and-resume.mmd) | Live sessions versus durable thread history, resume, and fork. |
 | [App-server RPC flow](diagrams/05-app-server-rpc-flow.mmd) | A rich client’s JSON-RPC handshake, streaming, and approval round-trip. |
 | [Context projection and compaction](diagrams/06-context-projection-and-compaction.mmd) | How recorded history becomes a model request constrained by context policy. |
+| [Skill call lifecycle](diagrams/07-skill-call-lifecycle.mmd) | Discovery, selection, resource reads, prompt injection, and model-facing skill tools. |
+| [Skill script command boundaries](diagrams/08-skill-script-command-boundaries.mmd) | Why skill attribution is separate from shell execution, approval, and sandboxing. |
+| [Tool-call routing lifecycle](diagrams/09-tool-call-routing-lifecycle.mmd) | A response item through parsing, policy, execution, result conversion, and the next turn. |
+| [Tool authority boundaries](diagrams/10-tool-authority-boundaries.mmd) | Which layer owns planning, policy, sandboxing, effects, providers, and persistence. |
 
 ## Scope and terminology
 
@@ -84,6 +93,8 @@ The most useful terms are:
 | How do IDEs/apps control Codex? | `codex-rs/app-server/README.md` and `codex-rs/app-server/src/` |
 | What crosses an API boundary? | `codex-rs/app-server-protocol/src/protocol/v2/` |
 | What is the formal logic behind the tooling loop? | `07-formal-operational-model.md` |
+| How do skills and skill scripts enter the loop? | `08-skill-and-cli-call-inventory.md` and `audit/skill-call-inventory/` |
+| How are tool calls parsed, routed, authorized, and executed? | `09-tool-call-and-routing-inventory.md` and `audit/tool-call-routing/` |
 
 ## A useful mental model
 

@@ -1,0 +1,34 @@
+{
+  "profile": "implementation-audit",
+  "status": "complete",
+  "target_claim_count": 20,
+  "inspected_source_count": 14,
+  "strength_counts": {
+    "established": 6,
+    "supported": 14,
+    "suggestive": 0,
+    "hypothesis_only": 0,
+    "local_observation_only": 0,
+    "unsupported": 0
+  },
+  "decision_counts": {
+    "accepted": 19,
+    "weakened": 1,
+    "moved_to_hypothesis": 0,
+    "moved_to_evidence_gap": 0,
+    "removed": 0
+  },
+  "open_evidence_gap_count": 3,
+  "changed_target_files": [
+    "docs/architecture/08-skill-and-cli-call-inventory.md",
+    "docs/architecture/diagrams/07-skill-call-lifecycle.mmd",
+    "docs/architecture/diagrams/08-skill-script-command-boundaries.mmd",
+    "docs/architecture/audit/skill-call-inventory/skill-call-inventory.json"
+  ],
+  "review_cutoff": "2026-07-16",
+  "repository_commit": "be0e0d791a1b735de307f013037b091d24f57484",
+  "validation": {
+    "command": "python3 .codex/skills/run-research-pass/scripts/validate_research_pass.py docs/architecture/audit/skill-call-inventory",
+    "result": "passed"
+  }
+}

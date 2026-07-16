@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from collections import Counter
 from pathlib import Path
 from typing import Any
@@ -54,6 +55,111 @@ def require(record: dict[str, Any], fields: set[str], label: str, errors: list[s
 def duplicate_ids(records: list[dict[str, Any]], field: str) -> set[str]:
     values = [str(record.get(field)) for record in records if record.get(field)]
     return {value for value, count in Counter(values).items() if count > 1}
+
+
+def validate_clickable_inventory(
+    audit_dir: Path,
+    sources: list[dict[str, Any]],
+    claims: list[dict[str, Any]],
+    errors: list[str],
+) -> None:
+    """Validate the optional clickable call inventory extension."""
+    inventory_files = (
+        ("skill-call-inventory.json", "skill inventory"),
+        ("tool-call-routing-inventory.json", "tool-routing inventory"),
+    )
+    existing = [(audit_dir / name, label) for name, label in inventory_files if (audit_dir / name).exists()]
+    if not existing:
+        return
+    for path, inventory_label in existing:
+        _validate_inventory_file(path, inventory_label, audit_dir, sources, claims, errors)
+
+
+def _validate_inventory_file(
+    path: Path,
+    inventory_label: str,
+    audit_dir: Path,
+    sources: list[dict[str, Any]],
+    claims: list[dict[str, Any]],
+    errors: list[str],
+) -> None:
+    payload = load_json(path, errors)
+    if not isinstance(payload, dict):
+        errors.append(f"{path.name} must contain an object")
+        return
+    records = payload.get("records", [])
+    require(payload, {"inventory_id", "pinned_commit", "records"}, inventory_label, errors)
+    if not isinstance(records, list):
+        errors.append(f"{inventory_label} records must be a list")
+        return
+
+    source_ids = {source.get("source_id") for source in sources}
+    claim_ids = {claim.get("claim_id") for claim in claims}
+    evidence_ids = {
+        point.get("evidence_id")
+        for source in sources
+        for point in source.get("evidence_points", [])
+        if isinstance(point, dict) and point.get("evidence_id")
+    }
+    for source in sources:
+        validate_links(source.get("source_links", []), audit_dir, f"source {source.get('source_id')}", errors)
+    record_fields = {
+        "call_id", "anchor", "phase", "kind", "name", "caller", "target",
+        "source_refs", "claim_refs", "evidence_ids", "input", "output",
+        "authority_boundary", "side_effects", "failure_modes", "model_visible",
+        "links",
+    }
+    for index, record in enumerate(records):
+        require(record, record_fields, f"{inventory_label} record[{index}]", errors)
+        call_id = record.get("call_id")
+        anchor = record.get("anchor", "")
+        if not isinstance(anchor, str) or not re.fullmatch(r"[a-z0-9-]+", anchor):
+            errors.append(f"{inventory_label} record {call_id} has invalid anchor")
+        for field, known, label in (
+            ("source_refs", source_ids, "source"),
+            ("claim_refs", claim_ids, "claim"),
+            ("evidence_ids", evidence_ids, "evidence"),
+        ):
+            values = record.get(field, [])
+            if not isinstance(values, list):
+                errors.append(f"{inventory_label} record {call_id} {field} must be a list")
+                continue
+            for value in values:
+                if value not in known:
+                    errors.append(f"{inventory_label} record {call_id} references unknown {label} {value}")
+        validate_links(record.get("links", []), audit_dir, f"{inventory_label} record {call_id}", errors)
+    duplicate_records = duplicate_ids(records, "call_id")
+    if duplicate_records:
+        errors.append(f"duplicate {inventory_label} call IDs: {', '.join(sorted(duplicate_records))}")
+
+    for index, claim in enumerate(claims):
+        for item in claim.get("evidence", []):
+            if not isinstance(item, dict) or not item.get("evidence_id"):
+                errors.append(f"claim {claim.get('claim_id')} lacks clickable evidence_id")
+            elif item["evidence_id"] not in evidence_ids:
+                errors.append(
+                    f"claim {claim.get('claim_id')} references unknown evidence {item['evidence_id']}"
+                )
+            links = item.get("links", [])
+            if not links:
+                errors.append(f"claim {claim.get('claim_id')} evidence {item.get('evidence_id')} lacks clickable links")
+            validate_links(links, audit_dir, f"claim {claim.get('claim_id')} evidence", errors)
+
+
+def validate_links(links: Any, base_dir: Path, label: str, errors: list[str]) -> None:
+    if not isinstance(links, list):
+        errors.append(f"{label} links must be a list")
+        return
+    for link in links:
+        if not isinstance(link, dict) or not link.get("label") or not link.get("target"):
+            errors.append(f"{label} has malformed clickable link")
+            continue
+        target = str(link["target"])
+        if re.match(r"^(?:https?:|mailto:|#)", target):
+            continue
+        file_target = target.split("#", 1)[0]
+        if not (base_dir / file_target).resolve().exists():
+            errors.append(f"{label} link target does not exist: {target}")
 
 
 def main() -> int:
@@ -123,6 +229,8 @@ def main() -> int:
     if duplicate_claims:
         errors.append(f"duplicate claim IDs: {', '.join(sorted(duplicate_claims))}")
     claim_ids = {claim.get("claim_id") for claim in claims}
+
+    validate_clickable_inventory(args.audit_dir, sources, claims, errors)
 
     review_fields = {
         "claim_id", "strongest_objection", "source_limitations",

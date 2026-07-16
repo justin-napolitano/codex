@@ -1,0 +1,13 @@
+{
+  "profile":"implementation-audit",
+  "status":"complete",
+  "target_claim_count":20,
+  "inspected_source_count":20,
+  "strength_counts":{"established":5,"supported":13,"suggestive":0,"hypothesis_only":0,"local_observation_only":2,"unsupported":0},
+  "decision_counts":{"accepted":19,"weakened":1,"moved_to_hypothesis":0,"moved_to_evidence_gap":0,"removed":0},
+  "open_evidence_gap_count":2,
+  "changed_target_files":["docs/architecture/09-tool-call-and-routing-inventory.md","docs/architecture/diagrams/09-tool-call-routing-lifecycle.mmd","docs/architecture/diagrams/10-tool-authority-boundaries.mmd"],
+  "validation":{"command":"python3 .codex/skills/run-research-pass/scripts/validate_research_pass.py docs/architecture/audit/tool-call-routing","result":"pending final validation"},
+  "review_cutoff":"2026-07-16",
+  "pinned_repository_commit":"e6611398b020a4d1ebef66f6644e3555375dc3fe"
+}

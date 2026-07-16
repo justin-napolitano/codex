@@ -1,0 +1,22 @@
+flowchart TD
+    A[Model response item] --> B[ToolRouter.build_tool_call]
+    B --> C[Typed ToolCall]
+    C --> D[ToolInvocation]
+    D --> E[ToolRegistry.dispatch_any]
+    E --> F[Pre-tool hook / argument rewrite]
+    F --> G{Policy and approval}
+    G -->|deny| X[Error result]
+    G -->|allow or approved| H{Sandbox / execution boundary}
+    H --> I[Unified exec]
+    H --> J[Apply patch]
+    H --> K[MCP or dynamic provider]
+    I --> L[Runtime output]
+    J --> L
+    K --> L
+    L --> M[Post-tool hook and result conversion]
+    M --> N[ResponseInputItem with same call_id]
+    N --> O[Events and rollout persistence]
+    O --> P[Normalized model context]
+    P --> Q[Next model request]
+    C -. cancellation .-> R[Parallel runtime gate]
+    R -. abort or await cleanup .-> I
